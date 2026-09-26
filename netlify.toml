@@ -6,6 +6,8 @@
   # Configure serverless functions for TanStack Start
   directory = ".netlify/functions-internal"
   node_bundler = "none"
+  # Include the dist/server directory in deployment
+  included_files = ["dist/server/**"]
 
 [[redirects]]
   # Route all requests through the TanStack Start server function

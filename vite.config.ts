@@ -34,11 +34,16 @@ export default defineConfig({
     devtools(),
     tailwindcss(),
     tanstackStart({
-      server: { entry: "server" },
+      server: { 
+        entry: "server",
+      },
     }),
     netlify(),
   ],
   resolve: {
     tsconfigPaths: true,
+  },
+  ssr: {
+    external: ["@supabase/supabase-js"],
   },
 });
