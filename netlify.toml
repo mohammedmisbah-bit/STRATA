@@ -2,19 +2,14 @@
   command = "npm run build"
   publish = "dist/client"
 
-[functions]
-  # Configure serverless functions for TanStack Start
-  directory = ".netlify/functions-internal"
-  node_bundler = "none"
-  # Include the dist/server directory in deployment
-  included_files = ["dist/server/**"]
-
-[[redirects]]
-  # Route all requests through the TanStack Start server function
-  from = "/*"
-  to = "/.netlify/functions/server"
-  status = 200
-  force = false
+# Serverless function handling and routing for the TanStack Start server are
+# managed automatically by @netlify/vite-plugin-tanstack-start (see
+# vite.config.ts), which writes a working ESM function to
+# .netlify/v1/functions/server.mjs during the build. A manual [functions]
+# block and redirect here previously pointed to a different, unbundled
+# directory (node_bundler = "none"), which caused Netlify to try to load the
+# ESM SSR output via CommonJS require() and crash with
+# "SyntaxError: Unexpected token 'export'" on every request.
 
 # Environment variable configuration
 # Set these in Netlify Dashboard > Site settings > Environment variables:
