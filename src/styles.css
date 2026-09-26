@@ -1,0 +1,277 @@
+@import "tailwindcss" source(none);
+@source "../src";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Design system definition.
+ *
+ * The @theme inline block maps CSS custom properties to Tailwind utility
+ * classes (e.g. --color-primary -> bg-primary, text-primary).
+ *
+ * The :root and .dark blocks define the actual color values using oklch.
+ * All colors MUST use oklch format.
+ *
+ * To add a new semantic color:
+ * 1. Add the variable to :root (light value) and .dark (dark value)
+ * 2. Register it in @theme inline as --color-<name>: var(--<name>)
+ */
+
+@theme inline {
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+  --radius-2xl: calc(var(--radius) + 8px);
+  --radius-3xl: calc(var(--radius) + 12px);
+  --radius-4xl: calc(var(--radius) + 16px);
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-ring-offset-background: var(--background);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-teal: var(--teal);
+  --color-teal-soft: var(--teal-soft);
+  --color-ochre: var(--ochre);
+  --color-ochre-soft: var(--ochre-soft);
+  --color-coral: var(--coral);
+  --color-coral-soft: var(--coral-soft);
+  --color-critical-bg: var(--critical-bg);
+  --color-critical-border: var(--critical-border);
+  --color-critical-fg: var(--critical-fg);
+  --color-warning-bg: var(--warning-bg);
+  --color-warning-border: var(--warning-border);
+  --color-warning-fg: var(--warning-fg);
+  --color-slate-line: var(--slate-line);
+  --color-console: var(--console);
+  --color-console-deep: var(--console-deep);
+  --color-panel-grid: var(--panel-grid);
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+:root {
+  --radius: 0.5rem;
+  --background: oklch(0.973 0.012 160);
+  --foreground: oklch(0.253 0.017 156);
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.253 0.017 156);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.253 0.017 156);
+  --primary: oklch(0.472 0.083 179);
+  --primary-foreground: oklch(0.99 0.01 175);
+  --secondary: oklch(0.968 0.007 247.896);
+  --secondary-foreground: oklch(0.253 0.017 156);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.945 0.045 175);
+  --accent-foreground: oklch(0.472 0.083 179);
+  --destructive: oklch(0.514 0.192 13);
+  --destructive-foreground: oklch(0.99 0.01 20);
+  --teal: oklch(0.472 0.083 179);
+  --teal-soft: oklch(0.945 0.045 175);
+  --ochre: oklch(0.646 0.152 63);
+  --ochre-soft: oklch(0.987 0.022 95);
+  --coral: oklch(0.514 0.192 13);
+  --coral-soft: oklch(0.936 0.032 17);
+  --critical-bg: oklch(0.969 0.015 12);
+  --critical-border: oklch(0.892 0.058 10);
+  --critical-fg: oklch(0.44 0.166 8);
+  --warning-bg: oklch(0.987 0.022 95);
+  --warning-border: oklch(0.899 0.11 96);
+  --warning-fg: oklch(0.414 0.112 55);
+  --slate-line: oklch(0.869 0.02 253);
+  --console: oklch(0.951 0.023 160);
+  /* Deep slate canvas for the GIS map surface. */
+  --console-deep: oklch(0.216 0.036 265);
+  --panel-grid: oklch(0.985 0 0);
+  --border: oklch(0.929 0.013 255.508);
+  --input: oklch(0.929 0.013 255.508);
+  --ring: oklch(0.704 0.04 256.788);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.984 0.003 247.858);
+  --sidebar-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-primary: oklch(0.208 0.042 265.755);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.968 0.007 247.896);
+  --sidebar-accent-foreground: oklch(0.208 0.042 265.755);
+  --sidebar-border: oklch(0.929 0.013 255.508);
+  --sidebar-ring: oklch(0.704 0.04 256.788);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695);
+  --foreground: oklch(0.984 0.003 247.858);
+  --card: oklch(0.208 0.042 265.755);
+  --card-foreground: oklch(0.984 0.003 247.858);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.984 0.003 247.858);
+  --primary: oklch(0.929 0.013 255.508);
+  --primary-foreground: oklch(0.208 0.042 265.755);
+  --secondary: oklch(0.279 0.041 260.031);
+  --secondary-foreground: oklch(0.984 0.003 247.858);
+  --muted: oklch(0.279 0.041 260.031);
+  --muted-foreground: oklch(0.704 0.04 256.788);
+  --accent: oklch(0.279 0.041 260.031);
+  --accent-foreground: oklch(0.984 0.003 247.858);
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.551 0.027 264.364);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.208 0.042 265.755);
+  --sidebar-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.984 0.003 247.858);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.551 0.027 264.364);
+
+  /*
+   * Domain tokens must be redeclared here. They are only defined in :root
+   * otherwise, which would leave the entire dashboard palette stuck on its
+   * light values the moment the `dark` class is applied.
+   */
+  --teal: oklch(0.696 0.1 180);
+  --teal-soft: oklch(0.32 0.05 180);
+  --ochre: oklch(0.769 0.152 70);
+  --ochre-soft: oklch(0.34 0.06 80);
+  --coral: oklch(0.712 0.176 15);
+  --coral-soft: oklch(0.33 0.08 15);
+  --critical-bg: oklch(0.28 0.07 12);
+  --critical-border: oklch(0.42 0.12 12);
+  --critical-fg: oklch(0.88 0.06 12);
+  --warning-bg: oklch(0.29 0.06 85);
+  --warning-border: oklch(0.44 0.1 85);
+  --warning-fg: oklch(0.9 0.06 90);
+  --slate-line: oklch(0.32 0.03 258);
+  --console: oklch(0.24 0.03 165);
+  --console-deep: oklch(0.17 0.03 265);
+  --panel-grid: oklch(0.24 0.04 265);
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-foreground);
+  }
+}
+
+@keyframes radar-scan {
+  0% {
+    top: 0%;
+    opacity: 0.8;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    top: 100%;
+    opacity: 0;
+  }
+}
+@keyframes subtle-pulse {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.008);
+  }
+}
+@keyframes soft-glow {
+  0%,
+  100% {
+    background-color: #ffe4e6;
+  }
+  50% {
+    background-color: #fecdd3;
+  }
+}
+@utility animate-radar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #0f766e, #2dd4bf, #0f766e);
+  box-shadow: 0 0 12px #2dd4bf;
+  animation: radar-scan 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+@utility animate-breathe {
+  animation: subtle-pulse 3s ease-in-out infinite;
+}
+@utility animate-soft-glow {
+  animation: soft-glow 2.4s ease-in-out infinite;
+}
+
+/* Graticule overlay for the GIS map surface. */
+@utility bg-map-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.279 0.041 260.031) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.279 0.041 260.031) 1px, transparent 1px);
+  background-size: 36px 36px;
+}
+
+/*
+ * Respect the OS reduced-motion setting. The dashboard leans on continuous
+ * animation (radar sweep, pulsing beacons, breathing alert cards) which is a
+ * vestibular trigger, so every looping effect is disabled here while the
+ * static styling stays intact.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .animate-radar {
+    display: none;
+  }
+}
