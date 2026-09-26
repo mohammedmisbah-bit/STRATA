@@ -3,6 +3,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { devtools } from "@tanstack/devtools-vite";
 import tailwindcss from "@tailwindcss/vite";
 import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
+import netlify from "@netlify/vite-plugin-tanstack-start";
 import { loadEnv } from "vite";
 
 /**
@@ -35,6 +36,7 @@ export default defineConfig({
     tanstackStart({
       server: { entry: "server" },
     }),
+    netlify(),
   ],
   resolve: {
     tsconfigPaths: true,

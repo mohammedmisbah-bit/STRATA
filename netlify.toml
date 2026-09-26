@@ -1,0 +1,21 @@
+[build]
+  command = "npm run build"
+  publish = "dist/client"
+
+[functions]
+  # Configure serverless functions for TanStack Start
+  directory = ".netlify/functions-internal"
+  node_bundler = "none"
+
+[[redirects]]
+  # Route all requests through the TanStack Start server function
+  from = "/*"
+  to = "/.netlify/functions/server"
+  status = 200
+  force = false
+
+# Environment variable configuration
+# Set these in Netlify Dashboard > Site settings > Environment variables:
+# - GROQ_API_KEY (server-only, not exposed to client)
+# - SUPABASE_SERVICE_ROLE_KEY (server-only, not exposed to client)
+# - Any VITE_* prefixed variables (available to client if needed)
