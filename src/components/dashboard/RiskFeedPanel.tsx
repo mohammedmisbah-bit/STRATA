@@ -29,6 +29,8 @@ export function RiskFeedPanel() {
   return (
     <Panel
       title="Active Shortfall Risk Feed"
+      provenance="simulated"
+      description="Prioritised operational issues with translated context and modelled impact."
       right={
         <span className="flex items-center gap-2">
           {isLocalised && isTranslating ? (

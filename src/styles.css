@@ -275,3 +275,135 @@
     display: none;
   }
 }
+
+/* STRATA application shell -------------------------------------------------- */
+@theme inline {
+  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+}
+
+:root {
+  --shell-ink: oklch(0.19 0.035 232);
+  --surface-shadow: 0 24px 65px -38px oklch(0.22 0.035 255 / 0.48);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    background: var(--background);
+  }
+
+  body {
+    min-width: 320px;
+    min-height: 100vh;
+    overflow-x: hidden;
+    font-family: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings:
+      "ss01" 1,
+      "cv02" 1,
+      "cv03" 1;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  ::selection {
+    background: oklch(0.78 0.11 180 / 0.35);
+    color: oklch(0.19 0.035 232);
+  }
+
+  :focus-visible {
+    outline-offset: 3px;
+  }
+}
+
+@utility font-display {
+  font-family: "Sora", "Manrope", ui-sans-serif, system-ui, sans-serif;
+}
+
+@utility app-shell-bg {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(circle at 18% -5%, oklch(0.82 0.08 180 / 0.22), transparent 32rem),
+    radial-gradient(circle at 92% 8%, oklch(0.78 0.07 290 / 0.12), transparent 28rem),
+    linear-gradient(to bottom, oklch(0.985 0.008 168), var(--background) 34rem);
+  background-attachment: fixed;
+}
+
+@utility strata-contours {
+  background-image:
+    radial-gradient(
+      ellipse at 80% 10%,
+      transparent 0 18%,
+      oklch(0.88 0.04 180 / 0.1) 18.2% 18.5%,
+      transparent 18.7% 25%,
+      oklch(0.88 0.04 180 / 0.08) 25.2% 25.5%,
+      transparent 25.7% 34%,
+      oklch(0.88 0.04 180 / 0.06) 34.2% 34.5%,
+      transparent 34.7%
+    ),
+    radial-gradient(
+      ellipse at 8% 110%,
+      transparent 0 28%,
+      oklch(0.88 0.04 180 / 0.08) 28.2% 28.5%,
+      transparent 28.7% 39%,
+      oklch(0.88 0.04 180 / 0.06) 39.2% 39.5%,
+      transparent 39.7%
+    );
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility page-enter {
+  animation: page-enter 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Keep MapLibre controls legible against the geological basemap. */
+.maplibregl-ctrl-group {
+  overflow: hidden;
+  border: 1px solid rgb(255 255 255 / 0.12) !important;
+  border-radius: 12px !important;
+  background: rgb(7 21 31 / 0.88) !important;
+  box-shadow: 0 12px 30px -18px rgb(2 8 23 / 0.9) !important;
+  backdrop-filter: blur(12px);
+}
+
+.maplibregl-ctrl-group button + button {
+  border-top-color: rgb(255 255 255 / 0.1) !important;
+}
+
+.maplibregl-ctrl-group button span {
+  filter: invert(1) opacity(0.8);
+}
+
+.maplibregl-ctrl-attrib {
+  border-radius: 8px 0 0 0 !important;
+  background: rgb(7 21 31 / 0.75) !important;
+  color: rgb(203 213 225) !important;
+  backdrop-filter: blur(8px);
+}
+
+.maplibregl-ctrl-attrib a {
+  color: rgb(153 246 228) !important;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: oklch(0.72 0.03 250) transparent;
+}
+
+@media (max-width: 639px) {
+  .maplibregl-ctrl-attrib {
+    max-width: 70%;
+    font-size: 8px !important;
+  }
+}

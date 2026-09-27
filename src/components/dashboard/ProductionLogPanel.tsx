@@ -1,4 +1,4 @@
-import { Activity, Database } from "lucide-react";
+import { Activity, Database, ShieldAlert, ShieldCheck } from "lucide-react";
 import { useMemo } from "react";
 
 import { useDashboard } from "@/context/use-dashboard";
@@ -13,7 +13,38 @@ import { cn } from "@/lib/utils";
 
 import { Panel } from "./Panel";
 
-export function ProductionLogPanel() {
+/**
+ * Flip to `true` only once `production_logs` is loaded from real data and
+ * reconciled against MOIL's monthly production disclosures on NSE. While the
+ * table shows the synthetic fixture, claiming validation would be false.
+ */
+const VALIDATED_AGAINST_MOIL_FILINGS = false;
+
+function FilingsValidationBadge() {
+  const Icon = VALIDATED_AGAINST_MOIL_FILINGS ? ShieldCheck : ShieldAlert;
+  return (
+    <span
+      className={cn(
+        "flex items-center gap-1 rounded-full border px-2 py-0.5 text-[10px] font-semibold",
+        VALIDATED_AGAINST_MOIL_FILINGS
+          ? "border-teal/40 bg-teal-soft text-teal"
+          : "border-amber-300 bg-amber-100 text-amber-900",
+      )}
+      title={
+        VALIDATED_AGAINST_MOIL_FILINGS
+          ? "Monthly totals reconciled with MOIL production disclosures filed on NSE."
+          : "Synthetic fixture. Reconcile real production_logs with MOIL NSE monthly filings, then set VALIDATED_AGAINST_MOIL_FILINGS."
+      }
+    >
+      <Icon className="size-3" aria-hidden="true" />
+      {VALIDATED_AGAINST_MOIL_FILINGS
+        ? "Validated against MOIL NSE Monthly Filings"
+        : "MOIL NSE Monthly Filings · validation pending"}
+    </span>
+  );
+}
+
+export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | undefined }) {
   const { mine } = useDashboard();
 
   // Correlated variant: actual_tonnes responds to downtime and rainfall using the
@@ -31,9 +62,12 @@ export function ProductionLogPanel() {
 
   return (
     <Panel
-      title="Daily Production Log · Synthetic"
+      title="Daily Production Log"
+      provenance="synthetic"
+      description="Day-level operating inputs and output variance for the selected mine."
       right={
         <span className="flex flex-wrap items-center gap-2">
+          <FilingsValidationBadge />
           <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
             <Database className="size-3" aria-hidden="true" />
             Correlated · seeded
@@ -85,8 +119,16 @@ export function ProductionLogPanel() {
             sample. Switch mine, or change VITE_MOCK_SEED to reshuffle.
           </div>
         ) : (
-          <div className="max-h-[220px] overflow-auto rounded-md border border-border">
-            <table className="w-full border-collapse text-left text-[11px]">
+          <div
+            role="region"
+            aria-label={`Scrollable synthetic production table for ${mine.label}`}
+            tabIndex={0}
+            className={cn(
+              "overflow-auto rounded-xl border border-border/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              expanded ? "max-h-[520px]" : "max-h-[260px]",
+            )}
+          >
+            <table className="w-full min-w-[680px] border-collapse text-left text-[11px]">
               <caption className="sr-only">
                 Synthetic daily production records for {mine.label}
               </caption>

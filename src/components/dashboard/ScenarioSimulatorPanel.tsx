@@ -22,7 +22,7 @@ import {
   type MitigationDirective,
 } from "@/services/groqService";
 import { LANGUAGE_META } from "@/services/translationService";
-import { fetchDailyPrecipitation } from "@/services/weatherService";
+import { fetchMineWeather, type RainfallImpact } from "@/services/weatherService";
 
 import { Panel } from "./Panel";
 import { RiskBadge } from "./RiskBadge";
@@ -37,7 +37,16 @@ const DRIVER_LABEL = {
 type LiveRainfallState =
   | { kind: "idle" }
   | { kind: "loading" }
-  | { kind: "ready"; mm: number; date: string; timezone: string }
+  | {
+      kind: "ready";
+      mm: number;
+      date: string;
+      timezone: string;
+      impact: RainfallImpact;
+      weekTotalMm: number;
+      rainyDays: number;
+      currentMm: number | null;
+    }
   | { kind: "unavailable" };
 
 export function ScenarioSimulatorPanel() {
@@ -138,7 +147,8 @@ export function ScenarioSimulatorPanel() {
     abortRef.current = controller;
     setLiveRainfall({ kind: "loading" });
 
-    const snapshot = await fetchDailyPrecipitation(mine.coordinates.lat, mine.coordinates.lon, {
+    // Queried at the active mine's own coordinates, not a regional default.
+    const snapshot = await fetchMineWeather(mine, {
       pastDays: 7,
       forecastDays: 1,
       signal: controller.signal,
@@ -158,12 +168,18 @@ export function ScenarioSimulatorPanel() {
       mm: precipitationMm,
       date,
       timezone: snapshot.timezone,
+      impact: snapshot.impact,
+      weekTotalMm: snapshot.totalMm,
+      rainyDays: snapshot.rainyDays,
+      currentMm: snapshot.current?.precipitationMm ?? null,
     });
-  }, [mine.coordinates.lat, mine.coordinates.lon, setRainfallMm]);
+  }, [mine, setRainfallMm]);
 
   return (
     <Panel
       title="Scenario Simulator & Action Console"
+      provenance="modelled"
+      description="Adjust two operational drivers, see the output impact, then generate a practical mitigation plan."
       right={
         <span className="flex items-center gap-2">
           <button
@@ -235,6 +251,41 @@ export function ScenarioSimulatorPanel() {
                   ? "Open-Meteo unavailable — slider value retained"
                   : "Keyless Open-Meteo feed · no API key required"}
           </span>
+
+          {liveRainfall.kind === "ready" ? (
+            <dl className="grid w-full grid-cols-2 gap-x-3 gap-y-1 border-t border-border pt-1.5 font-mono text-[10px] sm:grid-cols-4">
+              <div>
+                <dt className="text-muted-foreground">Impact</dt>
+                <dd
+                  className={cn(
+                    "font-semibold",
+                    liveRainfall.impact.level === "SEVERE"
+                      ? "text-coral"
+                      : liveRainfall.impact.level === "ELEVATED"
+                        ? "text-ochre"
+                        : "text-teal",
+                  )}
+                  title={liveRainfall.impact.summary}
+                >
+                  {liveRainfall.impact.level} · −{formatTonnes(liveRainfall.impact.lossTonnes)} T
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Now (15 min)</dt>
+                <dd className="font-semibold">
+                  {liveRainfall.currentMm === null ? "—" : `${liveRainfall.currentMm} mm`}
+                </dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">8-day total</dt>
+                <dd className="font-semibold">{liveRainfall.weekTotalMm} mm</dd>
+              </div>
+              <div>
+                <dt className="text-muted-foreground">Rainy days ≥2.5 mm</dt>
+                <dd className="font-semibold">{liveRainfall.rainyDays}</dd>
+              </div>
+            </dl>
+          ) : null}
         </div>
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">

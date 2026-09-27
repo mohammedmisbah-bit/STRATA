@@ -1,10 +1,9 @@
-import { defineConfig } from "vite";
-import { tanstackStart } from "@tanstack/react-start/plugin/vite";
-import { devtools } from "@tanstack/devtools-vite";
-import tailwindcss from "@tailwindcss/vite";
-import { TanStackRouterVite } from "@tanstack/router-plugin/vite";
 import netlify from "@netlify/vite-plugin-tanstack-start";
-import { loadEnv } from "vite";
+import { devtools } from "@tanstack/devtools-vite";
+import { tanstackStart } from "@tanstack/react-start/plugin/vite";
+import tailwindcss from "@tailwindcss/vite";
+import viteReact from "@vitejs/plugin-react";
+import { defineConfig, loadEnv } from "vite";
 
 /**
  * Server-only secrets read by TanStack Start server functions via `process.env`.
@@ -28,22 +27,31 @@ for (const key of SERVER_ONLY_KEYS) {
   }
 }
 
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [
-    TanStackRouterVite(),
     devtools(),
     tailwindcss(),
     tanstackStart({
-      server: { 
+      server: {
         entry: "server",
       },
     }),
-    netlify(),
+    // TanStack Start installs its router transform. React must follow it so JSX
+    // transformation and React Refresh run after route generation.
+    viteReact(),
+    // The adapter is required while building for Netlify. Keeping its local
+    // emulation middleware out of plain `vite dev` avoids it intercepting Vite's
+    // own client env module; use Netlify CLI separately when emulation is needed.
+    ...(command === "build" ? netlify() : []),
   ],
   resolve: {
     tsconfigPaths: true,
   },
+  // MapLibre 6 spawns `new Worker(url, { type: "module" })`; emit ES workers.
+  worker: {
+    format: "es",
+  },
   ssr: {
     external: ["@supabase/supabase-js"],
   },
-});
+}));

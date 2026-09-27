@@ -5,14 +5,14 @@ import { useDashboard } from "@/context/use-dashboard";
 import { cn } from "@/lib/utils";
 
 import { ConfidenceView } from "./ConfidenceView";
-import { MapView } from "./MapView";
 import { Panel } from "./Panel";
+import { ProspectivityMap, ProspectivityMapAttribution } from "./ProspectivityMap";
 import { SpectralView } from "./SpectralView";
 import { panelId, tabId } from "./view-meta";
 import { ViewTabs } from "./ViewTabs";
 
 const VIEW_COMPONENTS: Record<DashboardView, ComponentType> = {
-  map: MapView,
+  map: ProspectivityMap,
   spectral: SpectralView,
   confidence: ConfidenceView,
 };
@@ -33,12 +33,25 @@ const VIEW_COMPONENTS: Record<DashboardView, ComponentType> = {
  * Inactive panels get `pointer-events-none`, `aria-hidden` and `inert` so they
  * are unreachable by mouse, screen reader and keyboard alike.
  */
-export function ProspectivityExplorer() {
+export function ProspectivityExplorer({ expanded = false }: { expanded?: boolean | undefined }) {
   const { activeView, mine } = useDashboard();
+  const canvasHeight = expanded
+    ? activeView === "spectral"
+      ? "h-[760px] md:h-[540px]"
+      : "h-[520px] md:h-[560px]"
+    : activeView === "spectral"
+      ? "h-[720px] md:h-[420px]"
+      : "h-[420px]";
 
   return (
-    <Panel title="Prospectivity Spatial Explorer" right={<ViewTabs />}>
-      <div className="relative h-[340px]">
+    <Panel
+      title="Prospectivity Spatial Explorer"
+      provenance="simulated"
+      description="Move between mapped geology, satellite indicators and model confidence without losing your place."
+      right={<ViewTabs />}
+      footer={<ProspectivityMapAttribution />}
+    >
+      <div className={cn("relative transition-[height] duration-300", canvasHeight)}>
         {DASHBOARD_VIEWS.map((view) => {
           const ViewComponent = VIEW_COMPONENTS[view];
           const isActive = activeView === view;
@@ -57,8 +70,9 @@ export function ProspectivityExplorer() {
                 isActive ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
               )}
             >
-              {/* Remount only when the mine changes, never when the tab changes. */}
-              <ViewComponent key={mine.id} />
+              {/* Remount on mine change, never on tab change. The map is exempt:
+                  it flies to the new mine instead of re-creating its WebGL context. */}
+              <ViewComponent key={view === "map" ? "map" : mine.id} />
             </div>
           );
         })}

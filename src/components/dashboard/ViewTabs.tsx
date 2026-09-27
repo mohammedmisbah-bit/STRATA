@@ -50,7 +50,7 @@ export function ViewTabs() {
       role="tablist"
       aria-label="Prospectivity explorer view"
       onKeyDown={handleKeyDown}
-      className="flex flex-wrap gap-1.5"
+      className="flex w-full gap-1.5 overflow-x-auto pb-1 sm:w-auto sm:flex-wrap sm:overflow-visible sm:pb-0"
     >
       {DASHBOARD_VIEWS.map((view) => {
         const meta = VIEW_META[view];
@@ -70,7 +70,7 @@ export function ViewTabs() {
             title={meta.description}
             onClick={() => setActiveView(view)}
             className={cn(
-              "flex items-center gap-1.5 rounded-md border px-3 py-1.5 text-[11px] font-semibold transition-all duration-300 ease-in-out hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
+              "flex shrink-0 items-center gap-1.5 rounded-xl border px-3 py-2 text-[11px] font-semibold transition-all duration-300 ease-in-out hover:shadow-md focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
               isActive
                 ? "border-teal bg-teal text-primary-foreground shadow-sm"
                 : "border-slate-line bg-card text-slate-600 hover:bg-secondary",

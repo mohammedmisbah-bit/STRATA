@@ -9,8 +9,50 @@
  */
 
 import { env } from "@/lib/env";
+import type { Coordinates } from "@/lib/mine-data";
+import { LOSS_COEFFICIENTS } from "@/lib/simulation";
 
 const REQUEST_TIMEOUT_MS = 8_000;
+
+/** IMD definition of a rainy day: at least 2.5 mm in 24 h. */
+export const RAINY_DAY_THRESHOLD_MM = 2.5;
+
+/**
+ * Daily-rainfall bands for operational impact. The 80 mm ceiling matches the
+ * simulator's dewatering / bench-stability escalation in `buildDirectives`.
+ */
+export const RAINFALL_IMPACT_BANDS = {
+  severe: 80,
+  elevated: 40,
+  moderate: 10,
+} as const;
+
+export type RainfallImpactLevel = "LOW" | "MODERATE" | "ELEVATED" | "SEVERE";
+
+export type RainfallImpact = {
+  level: RainfallImpactLevel;
+  /** Modelled tonnage loss for the reading, using the simulator coefficient. */
+  lossTonnes: number;
+  /** Human-readable consequence for the control room. */
+  summary: string;
+};
+
+/** Pure: classifies a daily rainfall reading and prices it in tonnes. */
+export function assessRainfallImpact(millimetres: number): RainfallImpact {
+  const mm = Number.isFinite(millimetres) ? Math.max(0, millimetres) : 0;
+  const lossTonnes = Math.round(mm * LOSS_COEFFICIENTS.perRainfallMm);
+
+  if (mm > RAINFALL_IMPACT_BANDS.severe) {
+    return { level: "SEVERE", lossTonnes, summary: "Full dewatering, bench and portal checks" };
+  }
+  if (mm > RAINFALL_IMPACT_BANDS.elevated) {
+    return { level: "ELEVATED", lossTonnes, summary: "Pre-position pumps, watch haul roads" };
+  }
+  if (mm > RAINFALL_IMPACT_BANDS.moderate) {
+    return { level: "MODERATE", lossTonnes, summary: "Inside operating tolerance" };
+  }
+  return { level: "LOW", lossTonnes, summary: "Negligible operational impact" };
+}
 
 /** Balaghat Mine — the default reference point from the project brief. */
 export const DEFAULT_COORDINATES = { latitude: 21.8083, longitude: 80.1833 } as const;
@@ -30,6 +72,12 @@ export type PrecipitationSnapshot = {
   /** Wettest day in the window, or null if none. */
   peak: DailyPrecipitation | null;
   totalMm: number;
+  /** Days in the window at or above the IMD rainy-day threshold. */
+  rainyDays: number;
+  /** Current-interval precipitation (last 15 min), or null if not reported. */
+  current: { time: string; precipitationMm: number } | null;
+  /** Operational impact of the latest daily reading. */
+  impact: RainfallImpact;
   timezone: string;
   fetchedAt: string;
 };
@@ -47,6 +95,7 @@ type OpenMeteoPayload = {
   longitude?: unknown;
   timezone?: unknown;
   daily?: { time?: unknown; precipitation_sum?: unknown } | null;
+  current?: { time?: unknown; precipitation?: unknown } | null;
 };
 
 function clamp(value: number, min: number, max: number): number {
@@ -75,6 +124,7 @@ export async function fetchDailyPrecipitation(
     latitude: String(latitude),
     longitude: String(longitude),
     daily: "precipitation_sum",
+    current: "precipitation",
     timezone: "auto",
     past_days: String(clamp(Math.floor(options.pastDays ?? 7), 0, 92)),
     forecast_days: String(clamp(Math.floor(options.forecastDays ?? 1), 0, 16)),
@@ -120,12 +170,21 @@ export async function fetchDailyPrecipitation(
     let latest = daily[0] ?? null;
     let peak = daily[0] ?? null;
     let totalMm = 0;
+    let rainyDays = 0;
 
     for (const entry of daily) {
       totalMm += entry.precipitationMm;
+      if (entry.precipitationMm >= RAINY_DAY_THRESHOLD_MM) rainyDays += 1;
       if (latest !== null && entry.date >= latest.date) latest = entry;
       if (peak !== null && entry.precipitationMm > peak.precipitationMm) peak = entry;
     }
+
+    const currentTime = payload.current?.time;
+    const currentMm = payload.current?.precipitation;
+    const current =
+      typeof currentTime === "string" && isFiniteNumber(currentMm)
+        ? { time: currentTime, precipitationMm: Math.max(0, Math.round(currentMm * 10) / 10) }
+        : null;
 
     return {
       latitude: isFiniteNumber(payload.latitude) ? payload.latitude : latitude,
@@ -134,6 +193,9 @@ export async function fetchDailyPrecipitation(
       latest,
       peak,
       totalMm: Math.round(totalMm * 10) / 10,
+      rainyDays,
+      current,
+      impact: assessRainfallImpact(latest?.precipitationMm ?? 0),
       timezone: typeof payload.timezone === "string" ? payload.timezone : "UTC",
       fetchedAt: new Date().toISOString(),
     };
@@ -144,4 +206,15 @@ export async function fetchDailyPrecipitation(
     clearTimeout(timeout);
     externalSignal?.removeEventListener("abort", forwardAbort);
   }
+}
+
+/**
+ * Live rainfall for a mine, queried at that mine's exact coordinates.
+ * Same contract as `fetchDailyPrecipitation`: resolves `null` on any failure.
+ */
+export function fetchMineWeather(
+  mine: { coordinates: Coordinates },
+  options: FetchPrecipitationOptions = {},
+): Promise<PrecipitationSnapshot | null> {
+  return fetchDailyPrecipitation(mine.coordinates.lat, mine.coordinates.lon, options);
 }

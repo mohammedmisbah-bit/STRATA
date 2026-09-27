@@ -3,6 +3,7 @@ import { Gauge, ShieldAlert, Target, TrendingDown } from "lucide-react";
 import { useDashboard } from "@/context/use-dashboard";
 import { formatPercent, formatScore, formatTonnes } from "@/lib/format";
 import type { RiskAlert, RiskSeverity } from "@/lib/mine-data";
+import { cn } from "@/lib/utils";
 
 import { Kpi } from "./Kpi";
 import { RiskBadge } from "./RiskBadge";
@@ -24,48 +25,52 @@ function highestSeverity(alerts: readonly RiskAlert[]): RiskSeverity | null {
   );
 }
 
-export function KpiStrip() {
+export function KpiStrip({ className }: { className?: string | undefined }) {
   const { mine, scenario } = useDashboard();
   const worstSeverity = highestSeverity(mine.riskAlerts);
 
   return (
-    <div className="grid grid-cols-1 gap-3 px-4 py-3 sm:grid-cols-2 lg:grid-cols-4">
+    <section
+      aria-label="Key operating indicators"
+      className={cn("grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4", className)}
+    >
       <Kpi
         icon={<Target className="size-4" />}
-        label="Monthly Target"
+        label="Monthly target"
+        provenance="simulated"
         value={`${formatTonnes(scenario.targetTonnes)} T`}
         caption={`${mine.label} · prospectivity ${formatScore(mine.prospectivityScore)}`}
       />
-
       <Kpi
         icon={<Gauge className="size-4" />}
-        label="Forecast Output"
+        label="Forecast output"
+        provenance="modelled"
         value={`${formatTonnes(scenario.projectedTonnes)} T`}
         tone="teal"
         badge={
-          <span className="rounded-full bg-teal-soft px-1.5 py-0.5 text-[10px] font-semibold text-teal">
+          <span className="rounded-full bg-teal-soft px-2 py-1 text-[9px] font-bold text-teal">
             {formatPercent(scenario.attainmentPct)}
           </span>
         }
-        caption="Simulated against current slider inputs"
+        caption="Updates as scenario inputs change"
       />
-
       <Kpi
         icon={<TrendingDown className="size-4" />}
-        label="Projected Deficit"
+        label="Projected deficit"
+        provenance="modelled"
         value={`−${formatTonnes(scenario.shortfallTonnes)} T`}
         tone="coral"
         pulse={scenario.riskLevel === "CRITICAL"}
         badge={<RiskBadge severity={scenario.riskLevel} />}
         caption={`Modelled loss −${formatTonnes(scenario.modelledLossTonnes)} T`}
       />
-
       <Kpi
         icon={<ShieldAlert className="size-4" />}
-        label="Active Risk Alerts"
+        label="Active risk alerts"
+        provenance="simulated"
         value={String(mine.riskAlerts.length)}
         caption={worstSeverity === null ? "No open alerts" : `Highest severity: ${worstSeverity}`}
       />
-    </div>
+    </section>
   );
 }

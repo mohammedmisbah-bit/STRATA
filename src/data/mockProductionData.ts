@@ -74,10 +74,17 @@ function toIsoDate(timestamp: number): string {
   return new Date(timestamp).toISOString().slice(0, 10);
 }
 
-/** Midnight UTC today — a stable anchor for both render passes. */
+/**
+ * Fixed fixture anchor (2026-09-25 UTC, matching the default seed).
+ *
+ * A clock-derived "today" is not hydration-safe: a page server-rendered just
+ * before UTC midnight and hydrated just after would produce different dates on
+ * each side. A constant makes every render pass and every deploy agree.
+ */
+const FIXTURE_ANCHOR_UTC = Date.UTC(2026, 8, 25);
+
 function utcMidnightToday(): number {
-  const now = new Date();
-  return Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return FIXTURE_ANCHOR_UTC;
 }
 
 const DAY_MS = 86_400_000;

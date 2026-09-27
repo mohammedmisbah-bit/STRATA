@@ -13,7 +13,7 @@
  */
 
 import { isNotConfiguredError, supabase } from "@/lib/supabase";
-import { MINE_IDS, type MineId, type MineType } from "@/lib/mine-data";
+import { MINE_IDS, MOIL_OFFICIAL_SOURCE, type MineId, type MineType } from "@/lib/mine-data";
 
 export const MINES_TABLE = "mines";
 
@@ -29,7 +29,15 @@ export type MineRecord = {
   latitude: number;
   longitude: number;
   monthlyTargetTonnes: number;
+  /** Ore character, e.g. grade band or ore type. */
+  oreProfile: string;
+  /** Provenance of the depth / type / ore fields. */
+  officialSource: string;
+  /** Free-text operational context, e.g. a mining-method transition. */
+  operationalNote: string | null;
 };
+
+export { MOIL_OFFICIAL_SOURCE };
 
 export type MineSource = "supabase" | "fallback";
 
@@ -41,11 +49,18 @@ export type FetchMinesResult = {
 };
 
 /**
- * Hardcoded MOIL roster. The guaranteed floor for the UI.
+ * Hardcoded MOIL roster. The guaranteed floor for the UI, and the same values
+ * written by `supabase/seed/mines.sql`.
  *
- * ⚠️ Coordinates, depths and targets are the same placeholder figures used
- * elsewhere in the project — plausible, not authoritative. Supabase overrides
- * them once populated.
+ * Provenance per field:
+ *  - depth, mine type, ore profile, operational note: approximate figures from
+ *    MOIL SEBI / NSE corporate filings and IBM Indian Minerals Yearbook
+ *    (manganese chapter). Depths are rounded ("~") and move as development
+ *    advances — re-check against the latest annual report before quoting.
+ *  - coordinates: approximate mine centroids, good for map placement and
+ *    Open-Meteo lookups, not for survey work.
+ *  - monthly targets: still placeholders. MOIL publishes company-wide monthly
+ *    production, not per-mine targets.
  */
 export const FALLBACK_MINES: readonly MineRecord[] = [
   {
@@ -54,10 +69,13 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     district: "Balaghat",
     state: "Madhya Pradesh",
     mineType: "underground",
-    depthMeters: 500,
+    depthMeters: 385,
     latitude: 21.8083,
     longitude: 80.1833,
     monthlyTargetTonnes: 25000,
+    oreProfile: "High-grade Mn > 44%",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Deepest underground manganese mine in Asia",
   },
   {
     id: "dongri-buzurg",
@@ -69,6 +87,9 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     latitude: 21.3833,
     longitude: 79.6167,
     monthlyTargetTonnes: 18000,
+    oreProfile: "Manganese dioxide (MnO₂) ore",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Opencast-to-underground transition",
   },
   {
     id: "chikla",
@@ -80,6 +101,9 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     latitude: 21.25,
     longitude: 79.65,
     monthlyTargetTonnes: 9500,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: null,
   },
   {
     id: "kandri",
@@ -87,10 +111,13 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     district: "Nagpur",
     state: "Maharashtra",
     mineType: "underground",
-    depthMeters: 210,
+    depthMeters: 160,
     latitude: 21.3167,
     longitude: 79.15,
     monthlyTargetTonnes: 6800,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: null,
   },
   {
     id: "ukwa",
@@ -98,12 +125,20 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     district: "Balaghat",
     state: "Madhya Pradesh",
     mineType: "underground",
-    depthMeters: 165,
+    depthMeters: 150,
     latitude: 21.9333,
     longitude: 80.4167,
     monthlyTargetTonnes: 7200,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Underground slope (incline) mine",
   },
 ];
+
+/** Fallback record for a known mine, used to fill fields a live row omits. */
+function fallbackFor(id: string): MineRecord | undefined {
+  return FALLBACK_MINES.find((mine) => mine.id === id);
+}
 
 function fallbackResult(error: string | null): FetchMinesResult {
   return { mines: [...FALLBACK_MINES], source: "fallback", error };
@@ -181,6 +216,11 @@ function normalizeRow(row: RawRow): MineRecord | null {
   const rawType = pickString(row, ["mine_type", "type", "category"])?.toLowerCase() ?? "";
   const mineType: MineType = rawType.includes("open") ? "opencast" : "underground";
 
+  // Provenance columns may not exist on older tables. A known mine inherits the
+  // curated value; an unknown mine is marked unverified rather than borrowing
+  // MOIL's attribution.
+  const known = fallbackFor(id);
+
   return {
     id,
     name,
@@ -194,6 +234,12 @@ function normalizeRow(row: RawRow): MineRecord | null {
       0,
       pickNumber(row, ["monthly_target_tonnes", "target_tonnes", "monthly_target", "target"]) ?? 0,
     ),
+    oreProfile:
+      pickString(row, ["ore_profile", "ore_type", "grade"]) ?? known?.oreProfile ?? "Unspecified",
+    officialSource:
+      pickString(row, ["official_source", "source"]) ?? known?.officialSource ?? "Unverified",
+    operationalNote:
+      pickString(row, ["operational_note", "note", "notes"]) ?? known?.operationalNote ?? null,
   };
 }
 

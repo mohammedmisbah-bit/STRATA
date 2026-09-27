@@ -18,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 import { Panel } from "./Panel";
 
-export function ProductionTrendPanel() {
+export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean | undefined }) {
   const { mine, scenario } = useDashboard();
 
   const summary = useMemo(() => {
@@ -50,6 +50,8 @@ export function ProductionTrendPanel() {
   return (
     <Panel
       title="Production vs Target Trend"
+      provenance="simulated"
+      description="Twelve-month operating pattern with the current scenario plotted against history."
       right={
         <span
           className={cn(
@@ -66,7 +68,12 @@ export function ProductionTrendPanel() {
       }
     >
       <div className="flex h-full flex-col gap-2">
-        <div className="h-[196px] rounded-md border border-border bg-panel-grid p-2">
+        <div
+          className={cn(
+            "rounded-xl border border-border/70 bg-panel-grid p-2.5",
+            expanded ? "h-[340px] sm:h-[400px]" : "h-[230px]",
+          )}
+        >
           {hasData ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
               <ComposedChart data={mine.trend} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
@@ -137,7 +144,7 @@ export function ProductionTrendPanel() {
           )}
         </div>
 
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[
             { label: "Months below target", value: `${summary.monthsBelowTarget} / 12` },
             {

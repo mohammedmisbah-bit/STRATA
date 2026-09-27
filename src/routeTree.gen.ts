@@ -9,51 +9,163 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppIndexRouteImport } from './routes/_app.index'
+import { Route as AppProductionRouteImport } from './routes/_app.production'
+import { Route as AppProspectivityRouteImport } from './routes/_app.prospectivity'
+import { Route as AppRiskRouteImport } from './routes/_app.risk'
+import { Route as AppSimulatorRouteImport } from './routes/_app.simulator'
 
-const IndexRoute = IndexRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppIndexRoute = AppIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProductionRoute = AppProductionRouteImport.update({
+  id: '/production',
+  path: '/production',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppProspectivityRoute = AppProspectivityRouteImport.update({
+  id: '/prospectivity',
+  path: '/prospectivity',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppRiskRoute = AppRiskRouteImport.update({
+  id: '/risk',
+  path: '/risk',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppSimulatorRoute = AppSimulatorRouteImport.update({
+  id: '/simulator',
+  path: '/simulator',
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
+  '/': typeof AppIndexRoute
+  '/production': typeof AppProductionRoute
+  '/prospectivity': typeof AppProspectivityRoute
+  '/risk': typeof AppRiskRoute
+  '/simulator': typeof AppSimulatorRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
+  '/production': typeof AppProductionRoute
+  '/prospectivity': typeof AppProspectivityRoute
+  '/risk': typeof AppRiskRoute
+  '/simulator': typeof AppSimulatorRoute
+  '/': typeof AppIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/production': typeof AppProductionRoute
+  '/_app/prospectivity': typeof AppProspectivityRoute
+  '/_app/risk': typeof AppRiskRoute
+  '/_app/simulator': typeof AppSimulatorRoute
+  '/_app/': typeof AppIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/production' | '/prospectivity' | '/risk' | '/simulator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/production' | '/prospectivity' | '/risk' | '/simulator' | '/'
+  id:
+    | '__root__'
+    | '/_app'
+    | '/_app/production'
+    | '/_app/prospectivity'
+    | '/_app/risk'
+    | '/_app/simulator'
+    | '/_app/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/': {
+      id: '/_app/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppIndexRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/production': {
+      id: '/_app/production'
+      path: '/production'
+      fullPath: '/production'
+      preLoaderRoute: typeof AppProductionRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/prospectivity': {
+      id: '/_app/prospectivity'
+      path: '/prospectivity'
+      fullPath: '/prospectivity'
+      preLoaderRoute: typeof AppProspectivityRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/risk': {
+      id: '/_app/risk'
+      path: '/risk'
+      fullPath: '/risk'
+      preLoaderRoute: typeof AppRiskRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/simulator': {
+      id: '/_app/simulator'
+      path: '/simulator'
+      fullPath: '/simulator'
+      preLoaderRoute: typeof AppSimulatorRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppProductionRoute: typeof AppProductionRoute
+  AppProspectivityRoute: typeof AppProspectivityRoute
+  AppRiskRoute: typeof AppRiskRoute
+  AppSimulatorRoute: typeof AppSimulatorRoute
+  AppIndexRoute: typeof AppIndexRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppProductionRoute: AppProductionRoute,
+  AppProspectivityRoute: AppProspectivityRoute,
+  AppRiskRoute: AppRiskRoute,
+  AppSimulatorRoute: AppSimulatorRoute,
+  AppIndexRoute: AppIndexRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}

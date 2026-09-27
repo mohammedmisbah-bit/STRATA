@@ -1,15 +1,22 @@
 /**
  * MOIL mine master data.
  *
- * ⚠️ PLACEHOLDER VALUES — coordinates, depths, targets, trends, alerts and
- * spectral readings below are plausible stand-ins so the UI can be wired and
- * exercised end to end. They are NOT authoritative MOIL figures. Every value
- * here is expected to be replaced by the Supabase `mines` / `production_logs` /
- * `prospectivity_grid` tables once the real dataset lands.
+ * Ground-truth fields — `depthMeters`, `type`, `oreProfile`, `operationalNote` —
+ * carry approximate figures from MOIL SEBI / NSE corporate filings and the IBM
+ * Indian Minerals Yearbook, tagged via `officialSource`. Depths are rounded and
+ * change as development deepens; re-check against the latest annual report.
+ *
+ * ⚠️ Everything else — targets, trends, alerts, confidence bands, spectral
+ * readings, beacons — is still a plausible placeholder so the UI can be
+ * exercised end to end. Those values are expected to be replaced by the
+ * Supabase `mines` / `production_logs` / `prospectivity_grid` tables.
  *
  * The shape of this module is the contract the UI consumes. Keep the types
  * stable and swap the data source underneath.
  */
+
+/** Provenance tag for the MOIL ground-truth fields on each mine record. */
+export const MOIL_OFFICIAL_SOURCE = "MOIL SEBI / NSE Corporate Filings";
 
 export const MINE_IDS = ["balaghat", "dongri-buzurg", "chikla", "kandri", "ukwa"] as const;
 
@@ -91,6 +98,12 @@ export type MineProfile = {
   state: string;
   type: MineType;
   depthMeters: number;
+  /** Ore character, e.g. grade band or ore type. */
+  oreProfile: string;
+  /** Provenance of the ground-truth fields. */
+  officialSource: string;
+  /** Operational context, e.g. a mining-method transition. */
+  operationalNote: string | null;
   monthlyTargetTonnes: number;
   coordinates: Coordinates;
   gridResolution: string;
@@ -141,7 +154,10 @@ const MINE_PROFILES: Record<MineId, MineProfile> = {
     district: "Balaghat",
     state: "Madhya Pradesh",
     type: "underground",
-    depthMeters: 500,
+    depthMeters: 385,
+    oreProfile: "High-grade Mn > 44%",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Deepest underground manganese mine in Asia",
     monthlyTargetTonnes: 25000,
     coordinates: { lat: 21.8083, lon: 80.1833 },
     gridResolution: "10 m × 10 m",
@@ -232,6 +248,9 @@ const MINE_PROFILES: Record<MineId, MineProfile> = {
     state: "Maharashtra",
     type: "opencast",
     depthMeters: 120,
+    oreProfile: "Manganese dioxide (MnO₂) ore",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Opencast-to-underground transition",
     monthlyTargetTonnes: 18000,
     coordinates: { lat: 21.3833, lon: 79.6167 },
     gridResolution: "10 m × 10 m",
@@ -321,6 +340,9 @@ const MINE_PROFILES: Record<MineId, MineProfile> = {
     state: "Maharashtra",
     type: "underground",
     depthMeters: 180,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: null,
     monthlyTargetTonnes: 9500,
     coordinates: { lat: 21.25, lon: 79.65 },
     gridResolution: "10 m × 10 m",
@@ -400,7 +422,10 @@ const MINE_PROFILES: Record<MineId, MineProfile> = {
     district: "Nagpur",
     state: "Maharashtra",
     type: "underground",
-    depthMeters: 210,
+    depthMeters: 160,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: null,
     monthlyTargetTonnes: 6800,
     coordinates: { lat: 21.3167, lon: 79.15 },
     gridResolution: "10 m × 10 m",
@@ -480,7 +505,10 @@ const MINE_PROFILES: Record<MineId, MineProfile> = {
     district: "Balaghat",
     state: "Madhya Pradesh",
     type: "underground",
-    depthMeters: 165,
+    depthMeters: 150,
+    oreProfile: "Manganese ore (Sausar Group)",
+    officialSource: MOIL_OFFICIAL_SOURCE,
+    operationalNote: "Underground slope (incline) mine",
     monthlyTargetTonnes: 7200,
     coordinates: { lat: 21.9333, lon: 80.4167 },
     gridResolution: "10 m × 10 m",
@@ -600,6 +628,9 @@ export type MineOverride = {
   latitude: number;
   longitude: number;
   monthlyTargetTonnes: number;
+  oreProfile: string;
+  officialSource: string;
+  operationalNote: string | null;
 };
 
 /**
@@ -610,7 +641,7 @@ export type MineOverride = {
  * (trend, alerts, confidence bands, spectral layers) until those tables exist.
  *
  * Zero or missing numerics do NOT override — an unpopulated `depth_m` column
- * must not wipe a known 500 m shaft depth. A mine with no local profile is
+ * must not wipe a known 385 m shaft depth. A mine with no local profile is
  * synthesised with empty collections, which every panel already renders as an
  * explicit "no data" state rather than as zeroes.
  */
@@ -635,6 +666,9 @@ export function composeMineProfile(override: MineOverride): MineProfile {
     state: override.state,
     type: override.mineType,
     depthMeters,
+    oreProfile: override.oreProfile,
+    officialSource: override.officialSource,
+    operationalNote: override.operationalNote,
     monthlyTargetTonnes,
     coordinates: { lat: override.latitude, lon: override.longitude },
     gridResolution: base?.gridResolution ?? "10 m × 10 m",
