@@ -2,22 +2,9 @@
   command = "npm run build"
   publish = "dist/client"
 
-[functions]
-  # Configure serverless functions for TanStack Start
-  directory = ".netlify/functions-internal"
-  node_bundler = "none"
-  # Include the dist/server directory in deployment
-  included_files = ["dist/server/**"]
-
-[[redirects]]
-  # Route all requests through the TanStack Start server function
-  from = "/*"
-  to = "/.netlify/functions/server"
-  status = 200
-  force = false
-
-# Environment variable configuration
-# Set these in Netlify Dashboard > Site settings > Environment variables:
-# - GROQ_API_KEY (server-only, not exposed to client)
-# - SUPABASE_SERVICE_ROLE_KEY (server-only, not exposed to client)
-# - Any VITE_* prefixed variables (available to client if needed)
+# The @netlify/vite-plugin-tanstack-start adapter registers the SSR function
+# (.netlify/v1/functions/server.mjs, path "/*", preferStatic) during the build.
+# No manual [functions] or [[redirects]] config is needed.
+#
+# Server-only secrets go in Netlify > Site settings > Environment variables:
+#   GROQ_API_KEY, SUPABASE_SERVICE_ROLE_KEY
