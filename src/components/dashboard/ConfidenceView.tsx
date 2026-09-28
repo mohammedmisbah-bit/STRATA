@@ -11,10 +11,12 @@ import {
 } from "recharts";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatScore } from "@/lib/format";
 
 export function ConfidenceView() {
   const { mine } = useDashboard();
+  const t = useUiText();
 
   // Recharts needs the interval as a [lo, hi] tuple to render a banded Area.
   const data = useMemo(
@@ -29,18 +31,16 @@ export function ConfidenceView() {
   return (
     <div className="flex h-full min-h-[340px] flex-col">
       <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-semibold">
-          Prospectivity Score Confidence Intervals (95% CI) · {mine.label}
-        </p>
+        <p className="text-xs font-semibold">{t("confidence.heading", { mine: mine.label })}</p>
         <span className="rounded-full bg-teal-soft px-2 py-0.5 font-mono text-[10px] font-semibold text-teal">
-          Bootstrap variance ± {formatScore(mine.prospectivityVariance)}
+          {t("confidence.variance", { variance: formatScore(mine.prospectivityVariance) })}
         </span>
       </div>
 
       <div className="min-h-0 flex-1 rounded-md border border-border bg-panel-grid p-2">
         {data.length === 0 ? (
           <div className="grid h-full place-items-center text-xs text-muted-foreground">
-            No bootstrap predictions available for {mine.label}.
+            {t("confidence.empty", { mine: mine.label })}
           </div>
         ) : (
           <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={240}>

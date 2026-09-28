@@ -13,6 +13,7 @@ import {
 } from "recharts";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatPercent, formatTonnes } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ import { Panel } from "./Panel";
 
 export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean | undefined }) {
   const { mine, scenario } = useDashboard();
+  const t = useUiText();
 
   const summary = useMemo(() => {
     const points = mine.trend;
@@ -49,9 +51,9 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
 
   return (
     <Panel
-      title="Production vs Target Trend"
+      title={t("trend.title")}
       provenance="simulated"
-      description="Twelve-month operating pattern with the current scenario plotted against history."
+      description={t("trend.desc")}
       right={
         <span
           className={cn(
@@ -63,7 +65,7 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                 : "bg-rose-100 text-rose-800",
           )}
         >
-          FY attainment {formatPercent(summary.attainmentPct)}
+          {t("prod.fyAttainment", { pct: formatPercent(summary.attainmentPct) })}
         </span>
       }
     >
@@ -108,7 +110,7 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                 <Area
                   type="monotone"
                   dataKey="actual"
-                  name="Actual"
+                  name={t("common.actual")}
                   stroke="#0F766E"
                   strokeWidth={2}
                   fill="#CCFBF1"
@@ -117,7 +119,7 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                 <Line
                   type="monotone"
                   dataKey="target"
-                  name="Target"
+                  name={t("common.target")}
                   stroke="#D97706"
                   strokeWidth={2}
                   strokeDasharray="4 4"
@@ -129,7 +131,7 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                   strokeDasharray="2 3"
                   strokeWidth={1.5}
                   label={{
-                    value: "Simulated",
+                    value: t("trend.simulated"),
                     position: "insideTopRight",
                     fontSize: 9,
                     fill: "#BE123C",
@@ -139,22 +141,22 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
             </ResponsiveContainer>
           ) : (
             <div className="grid h-full place-items-center text-xs text-muted-foreground">
-              No production history available for {mine.label}.
+              {t("trend.empty", { mine: mine.label })}
             </div>
           )}
         </div>
 
         <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
           {[
-            { label: "Months below target", value: `${summary.monthsBelowTarget} / 12` },
+            { label: t("trend.monthsBelow"), value: `${summary.monthsBelowTarget} / 12` },
             {
-              label: "Best month",
+              label: t("trend.best"),
               value: summary.bestMonth
                 ? `${summary.bestMonth.month} · ${formatTonnes(summary.bestMonth.actual)} T`
                 : "—",
             },
             {
-              label: "Weakest month",
+              label: t("trend.weakest"),
               value: summary.worstMonth
                 ? `${summary.worstMonth.month} · ${formatTonnes(summary.worstMonth.actual)} T`
                 : "—",

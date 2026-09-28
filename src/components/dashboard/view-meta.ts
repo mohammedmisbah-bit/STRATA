@@ -1,18 +1,15 @@
 import { Crosshair, Layers, Map as MapIcon, type LucideIcon } from "lucide-react";
 
 import type { DashboardView } from "@/context/dashboard-context";
+import type { UiKey } from "@/i18n/ui-strings";
 
 export const VIEW_META: Record<
   DashboardView,
-  { label: string; icon: LucideIcon; description: string }
+  { labelKey: UiKey; descKey: UiKey; icon: LucideIcon }
 > = {
-  map: { label: "Map Mode", icon: MapIcon, description: "High-density GIS risk map" },
-  spectral: { label: "Spectral Layers", icon: Layers, description: "Band ratio breakdown" },
-  confidence: {
-    label: "Confidence Bounds",
-    icon: Crosshair,
-    description: "Bootstrap 95% intervals",
-  },
+  map: { labelKey: "view.map", descKey: "view.map.desc", icon: MapIcon },
+  spectral: { labelKey: "view.spectral", descKey: "view.spectral.desc", icon: Layers },
+  confidence: { labelKey: "view.confidence", descKey: "view.confidence.desc", icon: Crosshair },
 };
 
 /** Stable DOM ids so the tablist and tabpanels can reference each other. */

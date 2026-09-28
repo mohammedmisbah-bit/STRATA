@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 
 import { DASHBOARD_VIEWS, type DashboardView } from "@/context/dashboard-context";
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { cn } from "@/lib/utils";
 
 import { ConfidenceView } from "./ConfidenceView";
@@ -20,38 +21,33 @@ const VIEW_COMPONENTS: Record<DashboardView, ComponentType> = {
 /**
  * Hosts the three specialised views.
  *
- * All three stay mounted and are cross-faded via opacity rather than being
- * conditionally rendered. Two reasons:
- *
- *  1. Switching tabs never tears down view-local state (chart animation state,
- *     hover position, and later the MapLibre GL instance, which is expensive to
- *     re-initialise).
- *  2. Using opacity instead of `display: none` keeps every panel at full layout
- *     size, so Recharts' ResponsiveContainer always measures a real width and
- *     never collapses to a zero-width chart on reveal.
+ * All three stay mounted and cross-fade via opacity + a small translate
+ * (compositor-only), so switching tabs never tears down the WebGL map or
+ * re-measures a chart. The stage height is fixed per breakpoint — animating
+ * height would force layout every frame.
  *
  * Inactive panels get `pointer-events-none`, `aria-hidden` and `inert` so they
  * are unreachable by mouse, screen reader and keyboard alike.
  */
 export function ProspectivityExplorer({ expanded = false }: { expanded?: boolean | undefined }) {
   const { activeView, mine } = useDashboard();
-  const canvasHeight = expanded
-    ? activeView === "spectral"
-      ? "h-[760px] md:h-[540px]"
-      : "h-[520px] md:h-[560px]"
-    : activeView === "spectral"
-      ? "h-[720px] md:h-[420px]"
-      : "h-[420px]";
+  const t = useUiText();
 
   return (
     <Panel
-      title="Prospectivity Spatial Explorer"
+      title={t("explorer.title")}
       provenance="simulated"
-      description="Move between mapped geology, satellite indicators and model confidence without losing your place."
+      description={t("explorer.desc")}
       right={<ViewTabs />}
       footer={<ProspectivityMapAttribution />}
     >
-      <div className={cn("relative transition-[height] duration-300", canvasHeight)}>
+      <div
+        className={cn(
+          "relative",
+          // Mobile needs extra height so the stacked spectral cards fit.
+          expanded ? "h-[760px] md:h-[560px]" : "h-[720px] md:h-[420px]",
+        )}
+      >
         {DASHBOARD_VIEWS.map((view) => {
           const ViewComponent = VIEW_COMPONENTS[view];
           const isActive = activeView === view;
@@ -63,11 +59,12 @@ export function ProspectivityExplorer({ expanded = false }: { expanded?: boolean
               role="tabpanel"
               aria-labelledby={tabId(view)}
               aria-hidden={!isActive}
-              // `inert` keeps hidden panels out of the tab order entirely.
               inert={!isActive}
               className={cn(
-                "absolute inset-0 transition-opacity duration-300 ease-in-out",
-                isActive ? "z-10 opacity-100" : "pointer-events-none z-0 opacity-0",
+                "absolute inset-0 transition-[opacity,transform] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] motion-reduce:transition-none",
+                isActive
+                  ? "z-10 translate-y-0 opacity-100"
+                  : "pointer-events-none z-0 translate-y-1.5 opacity-0",
               )}
             >
               {/* Remount on mine change, never on tab change. The map is exempt:

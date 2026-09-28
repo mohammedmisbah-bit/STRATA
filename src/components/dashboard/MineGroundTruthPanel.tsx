@@ -1,6 +1,7 @@
 import { BadgeCheck, Compass, Layers3, Mountain, Ruler } from "lucide-react";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatLatitude, formatLongitude } from "@/lib/format";
 import { MOIL_OFFICIAL_SOURCE } from "@/lib/mine-data";
 
@@ -9,6 +10,7 @@ import { ProvenanceBadge, type Provenance } from "./ProvenanceBadge";
 
 export function MineGroundTruthPanel() {
   const { mine } = useDashboard();
+  const t = useUiText();
 
   // Only mines actually tagged with the MOIL filing source earn the Official
   // badge. A Supabase-only mine arrives as "Unverified" and is labelled so.
@@ -22,43 +24,39 @@ export function MineGroundTruthPanel() {
     provenance: Provenance;
   }> = [
     {
-      label: "Working depth",
+      label: t("gt.depth"),
       value: `~${mine.depthMeters} m`,
-      detail: mine.type === "opencast" ? "Opencast / transition" : "Underground workings",
+      detail: mine.type === "opencast" ? t("gt.opencast") : t("gt.underground"),
       icon: Ruler,
       provenance: filed,
     },
     {
-      label: "Ore character",
+      label: t("gt.ore"),
       value: mine.oreProfile,
       detail: mine.beltName,
       icon: Layers3,
       provenance: filed,
     },
     {
-      label: "Mine setting",
+      label: t("gt.setting"),
       value: `${mine.district}, ${mine.state}`,
-      detail: mine.operationalNote ?? `${mine.type} manganese operation`,
+      detail: mine.operationalNote ?? t("gt.operation", { type: mine.type }),
       icon: Mountain,
       provenance: filed,
     },
     {
       // Approximate centroids for map placement and weather lookups — not a
       // filed or surveyed position, so deliberately not marked Official.
-      label: "Reference location",
+      label: t("gt.location"),
       value: formatLatitude(mine.coordinates.lat),
-      detail: `${formatLongitude(mine.coordinates.lon)} · approximate centroid`,
+      detail: `${formatLongitude(mine.coordinates.lon)} · ${t("gt.centroid")}`,
       icon: Compass,
       provenance: "simulated",
     },
   ];
 
   return (
-    <Panel
-      title="Mine Ground Truth"
-      provenance={filed}
-      description="The stable site facts used across every model and analysis page."
-    >
+    <Panel title={t("gt.title")} provenance={filed} description={t("gt.desc")}>
       <div className="grid gap-2 sm:grid-cols-2">
         {facts.map((fact) => {
           const Icon = fact.icon;
@@ -81,8 +79,7 @@ export function MineGroundTruthPanel() {
       <p className="mt-3 flex items-start gap-2 rounded-xl border border-teal/15 bg-teal-soft/55 px-3 py-2.5 text-[10px] leading-4 text-teal">
         <BadgeCheck className="mt-0.5 size-3 shrink-0" aria-hidden="true" />
         <span>
-          <strong>Ground-truth source:</strong> {mine.officialSource}. Depths are approximate and
-          should be checked against the latest annual disclosure before formal reporting.
+          <strong>{t("gt.source")}</strong> {mine.officialSource}. {t("gt.depthNote")}
         </span>
       </p>
     </Panel>

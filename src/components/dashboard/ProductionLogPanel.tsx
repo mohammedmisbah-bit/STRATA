@@ -8,6 +8,7 @@ import {
   lossCorrelation,
   summarizeRecords,
 } from "@/data/mockProductionData";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatPercent, formatTonnes } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -21,6 +22,7 @@ import { Panel } from "./Panel";
 const VALIDATED_AGAINST_MOIL_FILINGS = false;
 
 function FilingsValidationBadge() {
+  const t = useUiText();
   const Icon = VALIDATED_AGAINST_MOIL_FILINGS ? ShieldCheck : ShieldAlert;
   return (
     <span
@@ -37,15 +39,14 @@ function FilingsValidationBadge() {
       }
     >
       <Icon className="size-3" aria-hidden="true" />
-      {VALIDATED_AGAINST_MOIL_FILINGS
-        ? "Validated against MOIL NSE Monthly Filings"
-        : "MOIL NSE Monthly Filings · validation pending"}
+      {VALIDATED_AGAINST_MOIL_FILINGS ? t("log.validated") : t("log.pending")}
     </span>
   );
 }
 
 export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | undefined }) {
   const { mine } = useDashboard();
+  const t = useUiText();
 
   // Correlated variant: actual_tonnes responds to downtime and rainfall using the
   // same coefficients as the scenario simulator, so the table shows real signal
@@ -62,15 +63,15 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
 
   return (
     <Panel
-      title="Daily Production Log"
+      title={t("log.title")}
       provenance="synthetic"
-      description="Day-level operating inputs and output variance for the selected mine."
+      description={t("log.desc")}
       right={
         <span className="flex flex-wrap items-center gap-2">
           <FilingsValidationBadge />
           <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
             <Database className="size-3" aria-hidden="true" />
-            Correlated · seeded
+            {t("log.seeded")}
           </span>
           <span
             className={cn(
@@ -85,7 +86,7 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
             {correlation === null ? "—" : correlation.toFixed(3)}
           </span>
           <span className="rounded-full bg-secondary px-2 py-0.5 font-mono text-[10px] font-semibold text-muted-foreground">
-            {records.length} / {CORRELATED_PRODUCTION_RECORDS.length} rows
+            {t("log.rows", { shown: records.length, total: CORRELATED_PRODUCTION_RECORDS.length })}
           </span>
         </span>
       }
@@ -93,11 +94,11 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
       <div className="space-y-2.5">
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: "Attainment", value: formatPercent(summary.attainmentPct) },
-            { label: "Avg downtime", value: `${summary.avgHoistDowntimeHrs} hrs` },
-            { label: "Total rainfall", value: `${summary.totalRainfallMm} mm` },
+            { label: t("common.attainment"), value: formatPercent(summary.attainmentPct) },
+            { label: t("log.avgDowntime"), value: `${summary.avgHoistDowntimeHrs} hrs` },
+            { label: t("log.totalRainfall"), value: `${summary.totalRainfallMm} mm` },
             {
-              label: "Days below target",
+              label: t("log.daysBelow"),
               value: `${summary.daysBelowTarget} / ${summary.recordCount}`,
             },
           ].map((stat) => (
@@ -115,13 +116,12 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
 
         {records.length === 0 ? (
           <div className="grid place-items-center rounded-md border border-dashed border-border bg-panel-grid p-6 text-center text-xs text-muted-foreground">
-            The 30-record fixture assigns one mine per day, so {mine.label} has no rows in this
-            sample. Switch mine, or change VITE_MOCK_SEED to reshuffle.
+            {t("log.empty", { mine: mine.label })}
           </div>
         ) : (
           <div
             role="region"
-            aria-label={`Scrollable synthetic production table for ${mine.label}`}
+            aria-label={t("log.tableLabel", { mine: mine.label })}
             tabIndex={0}
             className={cn(
               "overflow-auto rounded-xl border border-border/70 focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none",
@@ -135,22 +135,22 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
               <thead className="sticky top-0 bg-secondary">
                 <tr className="text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                   <th scope="col" className="px-2 py-1.5 font-semibold">
-                    Date
+                    {t("log.col.date")}
                   </th>
                   <th scope="col" className="px-2 py-1.5 text-right font-semibold">
-                    Downtime
+                    {t("log.col.downtime")}
                   </th>
                   <th scope="col" className="px-2 py-1.5 text-right font-semibold">
-                    Rainfall
+                    {t("log.col.rainfall")}
                   </th>
                   <th scope="col" className="px-2 py-1.5 text-right font-semibold">
-                    Target
+                    {t("common.target")}
                   </th>
                   <th scope="col" className="px-2 py-1.5 text-right font-semibold">
-                    Actual
+                    {t("common.actual")}
                   </th>
                   <th scope="col" className="px-2 py-1.5 text-right font-semibold">
-                    Var
+                    {t("log.col.var")}
                   </th>
                 </tr>
               </thead>
@@ -190,12 +190,7 @@ export function ProductionLogPanel({ expanded = false }: { expanded?: boolean | 
           </div>
         )}
 
-        <p className="text-[10px] leading-relaxed text-muted-foreground">
-          Synthetic fixture standing in for the Supabase <code>production_logs</code> table, from{" "}
-          <code>generateCorrelatedRecords()</code>. <code>actual_tonnes</code> is derived from
-          downtime and rainfall using the simulator's own coefficients plus noise, so the series is
-          fittable — the <code>r</code> badge above is measured from the data, not hardcoded.
-        </p>
+        <p className="text-[10px] leading-relaxed text-muted-foreground">{t("log.note")}</p>
       </div>
     </Panel>
   );

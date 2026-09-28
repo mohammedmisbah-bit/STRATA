@@ -31,7 +31,7 @@ export function PageHeader({
       <div className="relative flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div className="max-w-3xl">
           <div className="mb-4 flex items-center gap-3">
-            <span className="grid size-11 place-items-center rounded-2xl border border-white/12 bg-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] backdrop-blur">
+            <span className="grid size-11 place-items-center rounded-2xl border border-white/12 bg-white/8 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
               <Icon className="size-5 text-teal-300" aria-hidden="true" />
             </span>
             <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.22em] text-teal-200/80">

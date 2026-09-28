@@ -12,6 +12,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useDashboard } from "@/context/use-dashboard";
 import { useLanguage } from "@/context/use-language";
 import { useTranslatedText } from "@/hooks/use-translated-text";
+import type { UiKey } from "@/i18n/ui-strings";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatPercent, formatTonnes } from "@/lib/format";
 import { SIMULATOR_LIMITS } from "@/lib/simulation";
 import { cn } from "@/lib/utils";
@@ -29,10 +31,10 @@ import { RiskBadge } from "./RiskBadge";
 import { ScenarioSlider } from "./ScenarioSlider";
 
 const DRIVER_LABEL = {
-  hoist: "Hoist downtime dominant",
-  rainfall: "Rainfall dominant",
-  balanced: "Drivers balanced",
-} as const;
+  hoist: "panel.sim.driver.hoist",
+  rainfall: "panel.sim.driver.rainfall",
+  balanced: "panel.sim.driver.balanced",
+} as const satisfies Record<string, UiKey>;
 
 type LiveRainfallState =
   | { kind: "idle" }
@@ -67,6 +69,7 @@ export function ScenarioSimulatorPanel() {
     hoistDowntimeHours === hoistLimits.default && rainfallMm === rainfallLimits.default;
 
   const { language } = useLanguage();
+  const t = useUiText();
 
   const [liveRainfall, setLiveRainfall] = useState<LiveRainfallState>({ kind: "idle" });
   const abortRef = useRef<AbortController | null>(null);
@@ -177,9 +180,9 @@ export function ScenarioSimulatorPanel() {
 
   return (
     <Panel
-      title="Scenario Simulator & Action Console"
+      title={t("panel.sim.title")}
       provenance="modelled"
-      description="Adjust two operational drivers, see the output impact, then generate a practical mitigation plan."
+      description={t("panel.sim.desc")}
       right={
         <span className="flex items-center gap-2">
           <button
@@ -189,11 +192,11 @@ export function ScenarioSimulatorPanel() {
             className="flex items-center gap-1 rounded-md border border-slate-line bg-card px-2 py-1 text-[10px] font-semibold text-slate-600 transition-colors hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40"
           >
             <RotateCcw className="size-3" aria-hidden="true" />
-            Reset
+            {t("panel.sim.reset")}
           </button>
           <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground">
             <Sparkles className="size-3" aria-hidden="true" />
-            Deterministic rules
+            {t("panel.sim.rules")}
           </span>
         </span>
       }
@@ -201,7 +204,7 @@ export function ScenarioSimulatorPanel() {
       <div className="space-y-2.5">
         <ScenarioSlider
           id="sim-hoist-downtime"
-          label="Shaft Hoist Downtime"
+          label={t("panel.sim.hoist")}
           value={hoistDowntimeHours}
           min={hoistLimits.min}
           max={hoistLimits.max}
@@ -215,7 +218,7 @@ export function ScenarioSimulatorPanel() {
 
         <ScenarioSlider
           id="sim-rainfall"
-          label="Monsoon Rainfall"
+          label={t("panel.sim.rainfall")}
           value={rainfallMm}
           min={rainfallLimits.min}
           max={rainfallLimits.max}
@@ -239,23 +242,27 @@ export function ScenarioSimulatorPanel() {
             ) : (
               <CloudDownload className="size-3" aria-hidden="true" />
             )}
-            Use live rainfall
+            {t("panel.sim.useLive")}
           </button>
 
           <span className="font-mono text-[10px] text-muted-foreground" role="status">
             {liveRainfall.kind === "ready"
-              ? `Open-Meteo · ${liveRainfall.mm} mm on ${liveRainfall.date} (${liveRainfall.timezone})`
+              ? t("panel.sim.ready", {
+                  mm: liveRainfall.mm,
+                  date: liveRainfall.date,
+                  tz: liveRainfall.timezone,
+                })
               : liveRainfall.kind === "loading"
-                ? `Fetching Open-Meteo for ${mine.label}…`
+                ? t("panel.sim.fetching", { mine: mine.label })
                 : liveRainfall.kind === "unavailable"
-                  ? "Open-Meteo unavailable — slider value retained"
-                  : "Keyless Open-Meteo feed · no API key required"}
+                  ? t("panel.sim.unavailable")
+                  : t("panel.sim.idle")}
           </span>
 
           {liveRainfall.kind === "ready" ? (
             <dl className="grid w-full grid-cols-2 gap-x-3 gap-y-1 border-t border-border pt-1.5 font-mono text-[10px] sm:grid-cols-4">
               <div>
-                <dt className="text-muted-foreground">Impact</dt>
+                <dt className="text-muted-foreground">{t("panel.sim.impact")}</dt>
                 <dd
                   className={cn(
                     "font-semibold",
@@ -271,17 +278,17 @@ export function ScenarioSimulatorPanel() {
                 </dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Now (15 min)</dt>
+                <dt className="text-muted-foreground">{t("panel.sim.now")}</dt>
                 <dd className="font-semibold">
                   {liveRainfall.currentMm === null ? "—" : `${liveRainfall.currentMm} mm`}
                 </dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">8-day total</dt>
+                <dt className="text-muted-foreground">{t("panel.sim.eightDay")}</dt>
                 <dd className="font-semibold">{liveRainfall.weekTotalMm} mm</dd>
               </div>
               <div>
-                <dt className="text-muted-foreground">Rainy days ≥2.5 mm</dt>
+                <dt className="text-muted-foreground">{t("panel.sim.rainyDays")}</dt>
                 <dd className="font-semibold">{liveRainfall.rainyDays}</dd>
               </div>
             </dl>
@@ -290,10 +297,10 @@ export function ScenarioSimulatorPanel() {
 
         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {[
-            { label: "Projected", value: `${formatTonnes(scenario.projectedTonnes)} T` },
-            { label: "Shortfall", value: `−${formatTonnes(scenario.shortfallTonnes)} T` },
-            { label: "Attainment", value: formatPercent(scenario.attainmentPct) },
-            { label: "Target", value: `${formatTonnes(scenario.targetTonnes)} T` },
+            { label: t("common.projected"), value: `${formatTonnes(scenario.projectedTonnes)} T` },
+            { label: t("common.shortfall"), value: `−${formatTonnes(scenario.shortfallTonnes)} T` },
+            { label: t("common.attainment"), value: formatPercent(scenario.attainmentPct) },
+            { label: t("common.target"), value: `${formatTonnes(scenario.targetTonnes)} T` },
           ].map((stat) => (
             <div
               key={stat.label}
@@ -309,11 +316,11 @@ export function ScenarioSimulatorPanel() {
 
         <div className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-border bg-panel-grid px-3 py-2">
           <span className="text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Risk level
+            {t("panel.sim.riskLevel")}
           </span>
           <span className="flex items-center gap-2">
             <span className="font-mono text-[10px] text-muted-foreground">
-              {DRIVER_LABEL[scenario.dominantDriver]}
+              {t(DRIVER_LABEL[scenario.dominantDriver])}
             </span>
             <RiskBadge severity={scenario.riskLevel} />
           </span>
@@ -321,7 +328,7 @@ export function ScenarioSimulatorPanel() {
 
         <div className="rounded-md border border-border bg-console p-3">
           <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-muted-foreground">
-            Recommended actions · {mine.label}
+            {t("panel.sim.recommended", { mine: mine.label })}
           </p>
           <ul className="space-y-1.5 font-mono text-[11px] leading-relaxed text-foreground">
             {scenario.directives.map((line, index) => (
@@ -339,7 +346,7 @@ export function ScenarioSimulatorPanel() {
             <span className="flex flex-wrap items-center gap-2">
               <span className="flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.14em] text-teal">
                 <BrainCircuit className="size-3.5" aria-hidden="true" />
-                AI Directive
+                {t("panel.sim.ai")}
               </span>
               {/* Surfaced before generation, not after, so the exposure is
                   noticed during development rather than in production. */}
@@ -369,7 +376,9 @@ export function ScenarioSimulatorPanel() {
                       : `Groq unavailable (${directive.reason ?? "unknown"}) — deterministic fallback shown.`
                   }
                 >
-                  {directive.source === "groq" ? (directive.model ?? GROQ_MODEL) : "Rule fallback"}
+                  {directive.source === "groq"
+                    ? (directive.model ?? GROQ_MODEL)
+                    : t("panel.sim.ruleFallback")}
                 </span>
               ) : null}
 
@@ -384,7 +393,7 @@ export function ScenarioSimulatorPanel() {
                 ) : (
                   <Sparkles className="size-3" aria-hidden="true" />
                 )}
-                {isGenerating ? "Generating…" : "Generate AI Mitigation"}
+                {isGenerating ? t("panel.sim.generating") : t("panel.sim.generate")}
               </button>
             </span>
           </div>
@@ -392,9 +401,7 @@ export function ScenarioSimulatorPanel() {
           <div aria-live="polite" aria-busy={isGenerating}>
             {directive === null ? (
               <p className="text-[11px] leading-relaxed text-muted-foreground">
-                Generate a two-sentence mitigation directive for {mine.label} from the current
-                downtime and rainfall inputs. Falls back to a deterministic directive if Groq is
-                unreachable.
+                {t("panel.sim.aiIntro", { mine: mine.label })}
               </p>
             ) : (
               <blockquote

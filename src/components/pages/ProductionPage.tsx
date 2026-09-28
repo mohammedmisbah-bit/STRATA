@@ -6,10 +6,12 @@ import { ProductionTrendPanel } from "@/components/dashboard/ProductionTrendPane
 import { AnalysisMetric } from "@/components/layout/AnalysisMetric";
 import { HeroBadge, PageHeader } from "@/components/layout/PageHeader";
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatPercent, formatTonnes } from "@/lib/format";
 
 export function ProductionPage() {
   const { mine, scenario } = useDashboard();
+  const t = useUiText();
 
   const summary = useMemo(() => {
     const target = mine.trend.reduce((total, point) => total + point.target, 0);
@@ -31,55 +33,57 @@ export function ProductionPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
-        eyebrow="Production intelligence"
-        title={`Turn ${mine.label} output history into a clearer plan.`}
-        description="Compare target and actual output, inspect day-level drivers, and keep the current operating scenario visible beside the historical pattern."
+        eyebrow={t("nav.production.eyebrow")}
+        title={t("prod.title", { mine: mine.label })}
+        description={t("prod.desc")}
         icon={ChartNoAxesCombined}
         badges={
           <>
-            <HeroBadge tone="teal">FY attainment {formatPercent(summary.attainment)}</HeroBadge>
-            <HeroBadge>{mine.trend.length} monthly observations</HeroBadge>
-            <HeroBadge tone="amber">Daily log: deterministic synthetic data</HeroBadge>
+            <HeroBadge tone="teal">
+              {t("prod.fyAttainment", { pct: formatPercent(summary.attainment) })}
+            </HeroBadge>
+            <HeroBadge>{t("prod.observations", { count: mine.trend.length })}</HeroBadge>
+            <HeroBadge tone="amber">{t("prod.dailySynthetic")}</HeroBadge>
           </>
         }
       />
 
       <section
-        aria-label="Production indicators"
+        aria-label={t("nav.production.label")}
         className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
       >
         <AnalysisMetric
-          label="Historical actual"
+          label={t("prod.m.actual")}
           provenance="simulated"
           value={`${formatTonnes(summary.actual)} T`}
-          description={`Total across ${mine.trend.length} fiscal-month observations.`}
+          description={t("prod.m.actualDesc", { count: mine.trend.length })}
           icon={Gauge}
           tone="teal"
           progress={summary.attainment}
         />
         <AnalysisMetric
-          label="Historical target"
+          label={t("prod.m.target")}
           provenance="simulated"
           value={`${formatTonnes(summary.target)} T`}
-          description="Aggregate target represented by the local trend fixture."
+          description={t("prod.m.targetDesc")}
           icon={Target}
           tone="sky"
         />
         <AnalysisMetric
-          label="Below target"
+          label={t("prod.m.below")}
           provenance="simulated"
-          value={`${summary.below} months`}
-          description="Months where recorded actual output did not reach the target line."
+          value={`${summary.below} ${t("common.months")}`}
+          description={t("prod.m.belowDesc")}
           icon={TrendingDown}
           tone={summary.below > 6 ? "rose" : "amber"}
         />
         <AnalysisMetric
-          label="Strongest month"
+          label={t("prod.m.best")}
           provenance="simulated"
           value={
             summary.best ? `${summary.best.month} · ${formatTonnes(summary.best.actual)} T` : "—"
           }
-          description="Highest actual output in the available twelve-month series."
+          description={t("prod.m.bestDesc")}
           icon={CalendarDays}
           tone="violet"
         />
@@ -88,15 +92,15 @@ export function ProductionPage() {
       <ProductionTrendPanel expanded />
       <ProductionLogPanel expanded />
 
-      <aside className="rounded-2xl border border-border/70 bg-white/70 p-4 text-[11px] leading-5 text-muted-foreground shadow-sm backdrop-blur sm:flex sm:items-center sm:justify-between sm:gap-4">
+      <aside className="rounded-2xl border border-border/70 bg-white/80 p-4 text-[11px] leading-5 text-muted-foreground shadow-sm sm:flex sm:items-center sm:justify-between sm:gap-4">
         <p>
-          <strong className="text-foreground">How to read this page:</strong> the monthly chart is a
-          planning fixture, while the day-level table is a seeded dataset designed to preserve a
-          realistic relationship between rainfall, downtime and output.
+          <strong className="text-foreground">{t("prod.howTo")}</strong> {t("prod.howToBody")}
         </p>
         <p className="mt-2 shrink-0 rounded-xl bg-slate-100 px-3 py-2 font-mono text-[10px] sm:mt-0">
-          Current scenario: {formatTonnes(scenario.projectedTonnes)} T ·{" "}
-          {formatPercent(scenario.attainmentPct)}
+          {t("prod.currentScenario", {
+            tonnes: formatTonnes(scenario.projectedTonnes),
+            pct: formatPercent(scenario.attainmentPct),
+          })}
         </p>
       </aside>
     </div>

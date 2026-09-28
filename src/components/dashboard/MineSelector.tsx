@@ -1,6 +1,7 @@
 import { Building2, ChevronDown, Database, Loader2, WifiOff } from "lucide-react";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { cn } from "@/lib/utils";
 
 /**
@@ -11,23 +12,24 @@ import { cn } from "@/lib/utils";
 export function MineSelector() {
   const { mine, selectMine, mineOptions, mineSource, minesError, isFetchingMines } = useDashboard();
   const isLive = mineSource === "supabase";
+  const t = useUiText();
 
   return (
     <div className="flex min-w-0 items-center gap-2">
-      <div className="group relative flex min-w-0 items-center rounded-xl border border-border/80 bg-card/95 shadow-[0_6px_22px_-14px_rgba(15,23,42,0.55)] ring-1 ring-white transition hover:border-teal/35 hover:shadow-md focus-within:border-teal/50 focus-within:ring-2 focus-within:ring-teal/15">
+      <div className="group relative flex min-w-0 items-center rounded-xl border border-border/80 bg-card/95 shadow-[0_6px_22px_-14px_rgba(15,23,42,0.55)] ring-1 ring-white transition-colors duration-200 hover:border-teal/35 focus-within:border-teal/50 focus-within:ring-2 focus-within:ring-teal/15">
         <Building2
           className="ml-3 hidden size-3.5 shrink-0 text-teal sm:block"
           aria-hidden="true"
         />
         <label htmlFor="mine-selector" className="sr-only">
-          Active mine site
+          {t("shell.activeMine")}
         </label>
         <select
           id="mine-selector"
           value={mine.id}
           onChange={(event) => selectMine(event.target.value)}
           disabled={mineOptions.length === 0}
-          aria-label={`Active mine site. ${isLive ? "Live Supabase roster" : "Curated fallback roster"}`}
+          aria-label={`${t("shell.activeMine")} · ${isLive ? t("shell.liveRoster") : t("shell.curatedRoster")}`}
           className="min-w-0 max-w-[10.5rem] appearance-none bg-transparent py-2.5 pl-3 pr-8 text-[11px] font-bold text-foreground outline-none sm:max-w-[13rem] sm:pl-2.5 sm:text-xs"
         >
           {mineOptions.map((option) => (
@@ -67,7 +69,7 @@ export function MineSelector() {
         ) : (
           <WifiOff className="size-2.5" aria-hidden="true" />
         )}
-        {isLive ? "Live" : "Curated"}
+        {isLive ? t("shell.live") : t("shell.curated")}
       </span>
     </div>
   );

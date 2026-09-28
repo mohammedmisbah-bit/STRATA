@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useDashboard } from "@/context/use-dashboard";
 import { useLanguage } from "@/context/use-language";
 import { useTranslatedTexts } from "@/hooks/use-translated-text";
+import { useUiText } from "@/i18n/use-ui-text";
 import { env } from "@/lib/env";
 import { RISK_BEACON_TONE, RISK_SURFACE_CLASSES, formatTonnes } from "@/lib/format";
 import { LANGUAGE_META } from "@/services/translationService";
@@ -16,6 +17,7 @@ import { RiskBadge } from "./RiskBadge";
 export function RiskFeedPanel() {
   const { mine, scenario, loggedAlertImpactTonnes } = useDashboard();
   const { language } = useLanguage();
+  const ui = useUiText();
   const alerts = mine.riskAlerts;
 
   // Alert titles and causes are the localised surface. Severity labels and
@@ -28,9 +30,9 @@ export function RiskFeedPanel() {
 
   return (
     <Panel
-      title="Active Shortfall Risk Feed"
+      title={ui("feed.title")}
       provenance="simulated"
-      description="Prioritised operational issues with translated context and modelled impact."
+      description={ui("feed.desc")}
       right={
         <span className="flex items-center gap-2">
           {isLocalised && isTranslating ? (
@@ -51,11 +53,11 @@ export function RiskFeedPanel() {
               }
             >
               <TriangleAlert className="size-3" aria-hidden="true" />
-              {isTranslationEnabled ? "EN fallback" : "EN (off)"}
+              {isTranslationEnabled ? ui("feed.fallback") : ui("feed.off")}
             </span>
           ) : null}
           <span className="rounded-full bg-coral-soft px-2 py-0.5 text-[10px] font-semibold text-coral">
-            {alerts.length} open
+            {ui("feed.open", { count: alerts.length })}
           </span>
         </span>
       }
@@ -70,7 +72,7 @@ export function RiskFeedPanel() {
         {alerts.length === 0 ? (
           <div className="flex items-center gap-2 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-[11px] text-emerald-800">
             <ShieldCheck className="size-4 shrink-0" aria-hidden="true" />
-            No open shortfall alerts logged for {mine.label}.
+            {ui("feed.none", { mine: mine.label })}
           </div>
         ) : (
           alerts.map((alert) => (
@@ -103,15 +105,11 @@ export function RiskFeedPanel() {
         <div className="flex items-start gap-2 rounded-md border border-border bg-panel-grid p-3 text-[11px] text-muted-foreground">
           <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-ochre" aria-hidden="true" />
           <span>
-            Logged alerts account for{" "}
-            <span className="font-mono font-semibold text-foreground">
-              −{formatTonnes(loggedAlertImpactTonnes)} T
-            </span>{" "}
-            against a simulated shortfall of{" "}
-            <span className="font-mono font-semibold text-coral">
-              −{formatTonnes(scenario.shortfallTonnes)} T
-            </span>{" "}
-            at {mine.label}.
+            {ui("feed.summary", {
+              logged: formatTonnes(loggedAlertImpactTonnes),
+              shortfall: formatTonnes(scenario.shortfallTonnes),
+              mine: mine.label,
+            })}
           </span>
         </div>
       </div>

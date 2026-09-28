@@ -4,8 +4,12 @@ import { cn } from "@/lib/utils";
 
 import { ProvenanceBadge, type Provenance } from "./ProvenanceBadge";
 
-export const PANEL_HOVER =
-  "transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:border-slate-300/80 hover:shadow-[0_26px_60px_-34px_rgba(15,23,42,0.5)]";
+/**
+ * Large panels only shift their border on hover. Lifting a full-width panel
+ * with an animated shadow repaints a huge area every frame; small cards use
+ * the GPU-friendly `lift-card` utility instead.
+ */
+export const PANEL_HOVER = "transition-colors duration-300 ease-out hover:border-slate-300/80";
 
 /** Elevated analysis card shared across dashboard and detail pages. */
 export function Panel({
@@ -34,7 +38,7 @@ export function Panel({
   return (
     <section
       className={cn(
-        "relative isolate flex min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-card/95 shadow-[0_16px_48px_-32px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.025] backdrop-blur-sm",
+        "relative isolate flex min-h-0 flex-col overflow-hidden rounded-[1.35rem] border border-white/80 bg-card/95 shadow-[0_16px_48px_-32px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.12)] ring-1 ring-slate-950/[0.025]",
         PANEL_HOVER,
         className,
       )}

@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from "react";
 
 import { useDashboard } from "@/context/use-dashboard";
 import { GEOLOGY_LEGEND, NGDR_GEOLOGY_LAYER } from "@/data/ngdrGeologyLayer";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatLatitude, formatLongitude, formatScore } from "@/lib/format";
 import type { BeaconTone, MapBeacon, MineProfile } from "@/lib/mine-data";
 import { cn } from "@/lib/utils";
@@ -23,29 +24,36 @@ type MapLibreModule = typeof import("maplibre-gl");
 type MapStatus = "loading" | "ready" | "error";
 
 const GEOLOGY_SOURCE_ID = "ngdr-geology";
-const MINE_ZOOM = 9;
+/**
+ * Mine-level zoom. The shaft and prospect beacons sit 1–2 km apart, so at the
+ * old zoom of 9 their labels stacked on top of each other. Zoom out with the
+ * controls to see the whole belt.
+ */
+const MINE_ZOOM = 12.4;
 
 /**
- * Keyless dark raster basemap (CARTO over OpenStreetMap). Free for
- * low-volume use with attribution; move to a paid or self-hosted tile source
- * before heavy production traffic.
+ * Keyless dark vector basemap from OpenFreeMap (OpenStreetMap data). No API
+ * key, no registration; attribution ships inside the style.
+ *
+ * CARTO's `basemaps.cartocdn.com` raster tiles were used previously, but they
+ * now watermark every tile with "API KEY REQUIRED".
  */
-const BASEMAP_STYLE: StyleSpecification = {
+const BASEMAP_STYLE_URL = "https://tiles.openfreemap.org/styles/dark";
+
+/**
+ * Used when the basemap style can't be fetched (offline, blocked host). The
+ * geology overlay and markers still render on a plain background.
+ */
+const FALLBACK_STYLE: StyleSpecification = {
   version: 8,
-  sources: {
-    basemap: {
-      type: "raster",
-      tiles: ["a", "b", "c"].map(
-        (sub) => `https://${sub}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png`,
-      ),
-      tileSize: 256,
-      maxzoom: 19,
-      attribution:
-        '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors © <a href="https://carto.com/attributions">CARTO</a>',
-    },
-  },
-  layers: [{ id: "basemap", type: "raster", source: "basemap" }],
+  sources: {},
+  layers: [
+    { id: "fallback-background", type: "background", paint: { "background-color": "#0b1620" } },
+  ],
 };
+
+/** How long to wait for the remote style before switching to the fallback. */
+const STYLE_TIMEOUT_MS = 8000;
 
 /** NGDR / GSI overlay, bottom to top. All share the geology source. */
 const OVERLAY_LAYERS: LayerSpecification[] = [
@@ -54,7 +62,20 @@ const OVERLAY_LAYERS: LayerSpecification[] = [
     type: "fill",
     source: GEOLOGY_SOURCE_ID,
     filter: ["==", ["get", "kind"], "lithology"],
-    paint: { "fill-color": ["get", "color"], "fill-opacity": ["get", "opacity"] },
+    paint: {
+      "fill-color": ["get", "color"],
+      // Full strength at belt scale; fades at mine scale, where the view sits
+      // entirely inside one polygon and a solid tint would hide the basemap.
+      "fill-opacity": [
+        "interpolate",
+        ["linear"],
+        ["zoom"],
+        9,
+        ["get", "opacity"],
+        12,
+        ["*", ["get", "opacity"], 0.3],
+      ],
+    },
   },
   {
     id: "ngdr-lithology-outline",
@@ -185,6 +206,8 @@ export function ProspectivityMap() {
   const initialCenterRef = useRef(mine.coordinates);
 
   const [status, setStatus] = useState<MapStatus>("loading");
+  const [basemapFailed, setBasemapFailed] = useState(false);
+  const t = useUiText();
   const [overlayVisible, setOverlayVisible] = useState(true);
   // Read by the load handler so a toggle made before load is honoured.
   const overlayVisibleRef = useRef(overlayVisible);
@@ -199,6 +222,8 @@ export function ProspectivityMap() {
 
     let cancelled = false;
     let map: MapLibreMap | null = null;
+    let resizeObserver: ResizeObserver | null = null;
+    let styleTimeout: number | undefined;
 
     import("maplibre-gl")
       .then((lib) => {
@@ -212,7 +237,7 @@ export function ProspectivityMap() {
           const { lat, lon } = initialCenterRef.current;
           map = new lib.Map({
             container,
-            style: BASEMAP_STYLE,
+            style: BASEMAP_STYLE_URL,
             center: [lon, lat],
             zoom: MINE_ZOOM,
             attributionControl: { compact: true },
@@ -226,17 +251,72 @@ export function ProspectivityMap() {
         const instance = map;
         instance.addControl(new lib.NavigationControl({ showCompass: false }), "top-right");
 
-        instance.on("load", () => {
-          if (cancelled) return;
-          instance.addSource(GEOLOGY_SOURCE_ID, { type: "geojson", data: NGDR_GEOLOGY_LAYER });
+        // Attach overlay layers as soon as the style is parsed. `load` waits
+        // for every basemap tile, so one slow or blocked tile host would leave
+        // the whole map stuck behind the loading state.
+        let initialised = false;
+        let usingFallback = false;
+        const switchToFallback = () => {
+          if (cancelled || initialised || usingFallback) return;
+          usingFallback = true;
+          setBasemapFailed(true);
+          instance.setStyle(FALLBACK_STYLE);
+          instance.once("style.load", onStyleReady);
+        };
+        styleTimeout = window.setTimeout(switchToFallback, STYLE_TIMEOUT_MS);
+
+        const onStyleReady = () => {
+          if (cancelled || initialised) return;
+          initialised = true;
+          window.clearTimeout(styleTimeout);
+          if (instance.getSource(GEOLOGY_SOURCE_ID) === undefined) {
+            instance.addSource(GEOLOGY_SOURCE_ID, { type: "geojson", data: NGDR_GEOLOGY_LAYER });
+          }
           const visibility = overlayVisibleRef.current ? "visible" : "none";
+          // Slot the geology beneath the basemap's first label layer so town
+          // and road names stay readable on top of the fills.
+          const beforeId = instance.getStyle().layers.find((layer) => layer.type === "symbol")?.id;
           for (const layer of OVERLAY_LAYERS) {
-            instance.addLayer(layer);
+            if (instance.getLayer(layer.id) === undefined) instance.addLayer(layer, beforeId);
             instance.setLayoutProperty(layer.id, "visibility", visibility);
           }
           mapRef.current = instance;
           setStatus("ready");
+        };
+        instance.once("style.load", onStyleReady);
+        instance.once("load", onStyleReady);
+
+        // The OpenFreeMap dark style references a few pattern images (e.g.
+        // "wood-pattern" at high zoom) that its sprite doesn't ship. In
+        // MapLibre 6 only the resolver can supply an image before MapLibre
+        // logs it as missing; a `styleimagemissing` listener fires too late.
+        instance.setMissingStyleImageResolver((imageId) => {
+          if (!instance.hasImage(imageId)) {
+            instance.addImage(imageId, { width: 1, height: 1, data: new Uint8Array(4) });
+          }
         });
+        if (instance.isStyleLoaded()) onStyleReady();
+
+        // Basemap tile failures (offline, blocked CDN) are non-fatal: the
+        // geology overlay and markers still render, and a notice explains the
+        // missing background.
+        instance.on("error", (event) => {
+          if (cancelled) return;
+          const sourceId = (event as { sourceId?: unknown }).sourceId;
+          // No sourceId before the style loads means the style itself failed.
+          if (!initialised && sourceId === undefined) {
+            switchToFallback();
+            return;
+          }
+          if (typeof sourceId === "string" && sourceId !== GEOLOGY_SOURCE_ID) {
+            setBasemapFailed(true);
+          }
+        });
+
+        // The panel can change size without a window resize (tab reveal,
+        // sidebar, breakpoint), so track the container itself.
+        resizeObserver = new ResizeObserver(() => instance.resize());
+        resizeObserver.observe(container);
       })
       .catch(() => {
         if (!cancelled) setStatus("error");
@@ -244,6 +324,8 @@ export function ProspectivityMap() {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(styleTimeout);
+      resizeObserver?.disconnect();
       for (const marker of markersRef.current) marker.remove();
       markersRef.current = [];
       mapRef.current = null;
@@ -309,19 +391,27 @@ export function ProspectivityMap() {
   return (
     <div className="flex h-full min-h-[340px] flex-col overflow-hidden rounded-md bg-console-deep">
       <div className="relative min-h-0 flex-1">
-        <div
-          ref={containerRef}
-          className="absolute inset-0"
-          role="region"
-          aria-label={`Map of ${mine.beltName}, centred on ${mine.label}`}
-        />
+        {/*
+          MapLibre adds `.maplibregl-map { position: relative }` to its container,
+          and that stylesheet loads after Tailwind, so an `absolute inset-0` on the
+          container itself is overridden and the map collapses to 0px tall. The
+          wrapper owns the absolute fill; the container just takes 100%.
+        */}
+        <div className="absolute inset-0">
+          <div
+            ref={containerRef}
+            className="h-full w-full"
+            role="region"
+            aria-label={t("map.region", { belt: mine.beltName, mine: mine.label })}
+          />
+        </div>
 
         <ul className="sr-only">
           {mines.map((site) => (
             <li key={site.id}>
               {site.label}
-              {site.id === mine.id ? " (selected)" : ""}: {formatLatitude(site.coordinates.lat)},{" "}
-              {formatLongitude(site.coordinates.lon)}
+              {site.id === mine.id ? ` ${t("map.selected")}` : ""}:{" "}
+              {formatLatitude(site.coordinates.lat)}, {formatLongitude(site.coordinates.lon)}
             </li>
           ))}
           {mine.mapBeacons.map((beacon) => (
@@ -336,7 +426,7 @@ export function ProspectivityMap() {
             aria-pressed={overlayVisible}
             disabled={status === "error"}
             className={cn(
-              "pointer-events-auto flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[10px] font-semibold backdrop-blur transition-colors",
+              "pointer-events-auto flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[10px] font-semibold transition-colors duration-200 active:scale-[0.97]",
               "focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40",
               overlayVisible
                 ? "border-teal-400/60 bg-teal-950/70 text-teal-200 hover:bg-teal-900/70"
@@ -344,9 +434,9 @@ export function ProspectivityMap() {
             )}
           >
             <Layers className="size-3" aria-hidden="true" />
-            <span className="hidden sm:inline">[ Toggle NGDR Geological Overlay ]</span>
-            <span className="sm:hidden">Geology overlay</span>
-            <span className="sr-only">{overlayVisible ? "(on)" : "(off)"}</span>
+            <span className="hidden sm:inline">{t("map.toggle")}</span>
+            <span className="sm:hidden">{t("map.toggleShort")}</span>
+            <span className="sr-only">{overlayVisible ? t("map.on") : t("map.off")}</span>
           </button>
           <span className="rounded bg-slate-950/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-300">
             {mine.beltName}
@@ -354,9 +444,9 @@ export function ProspectivityMap() {
         </div>
 
         {overlayVisible && status === "ready" ? (
-          <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-md border border-slate-700 bg-slate-950/80 px-2 py-1.5 backdrop-blur">
+          <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-md border border-slate-700 bg-slate-950/90 px-2 py-1.5">
             <p className="mb-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
-              NGDR / GSI Bhukosh · simulated
+              {t("map.legend")}
             </p>
             <ul className="space-y-0.5">
               {GEOLOGY_LEGEND.map((entry) => (
@@ -388,9 +478,18 @@ export function ProspectivityMap() {
           <div className="pointer-events-none absolute inset-0 grid place-items-center text-[11px] text-slate-400">
             <span className="flex items-center gap-2">
               <Loader2 className="size-3.5 motion-safe:animate-spin" aria-hidden="true" />
-              Loading map…
+              {t("map.loading")}
             </span>
           </div>
+        ) : null}
+
+        {status === "ready" && basemapFailed ? (
+          <p
+            className="pointer-events-none absolute right-2 top-24 z-10 max-w-[14rem] rounded-md border border-amber-400/40 bg-slate-950/90 px-2 py-1.5 text-[10px] leading-4 text-amber-200"
+            role="status"
+          >
+            {t("map.basemapFailed")}
+          </p>
         ) : null}
 
         {status === "error" ? (
@@ -400,8 +499,7 @@ export function ProspectivityMap() {
           >
             <span className="flex max-w-xs flex-col items-center gap-2">
               <MapPinOff className="size-5 text-slate-500" aria-hidden="true" />
-              The map needs WebGL, which isn't available in this browser. Mine coordinates are
-              listed below.
+              {t("map.webgl")}
             </span>
           </div>
         ) : null}
@@ -414,8 +512,10 @@ export function ProspectivityMap() {
           ~{mine.depthMeters} m {mine.type}
         </span>
         <span>{mine.oreProfile}</span>
-        <span>Score {formatScore(mine.prospectivityScore)}</span>
-        <span className="text-slate-400">Ground truth: {mine.officialSource}</span>
+        <span>{t("pros.score", { score: formatScore(mine.prospectivityScore) })}</span>
+        <span className="text-slate-400">
+          {t("map.groundTruth")}: {mine.officialSource}
+        </span>
       </div>
     </div>
   );
@@ -423,15 +523,12 @@ export function ProspectivityMap() {
 
 /** Card-footer attribution for the prospectivity explorer. */
 export function ProspectivityMapAttribution() {
+  const t = useUiText();
   return (
     <p className="text-[10px] leading-relaxed text-muted-foreground">
-      <span className="font-semibold text-foreground">Data Sources:</span> GSI Bhukosh (Geological
-      Maps) | NGDR (GIS Layers) | MOIL Investor Relations (Ground Truth)
-      <span className="block sm:inline">
-        {" "}
-        · Overlay geometry is a simulated approximation of the GSI / NGDR layers, not digitised
-        vectors.
-      </span>
+      <span className="font-semibold text-foreground">{t("map.sources")}</span> GSI Bhukosh
+      (Geological Maps) | NGDR (GIS Layers) | MOIL Investor Relations (Ground Truth)
+      <span className="block sm:inline"> · {t("map.overlayNote")}</span>
     </p>
   );
 }

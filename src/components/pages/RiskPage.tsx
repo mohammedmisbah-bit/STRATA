@@ -6,6 +6,7 @@ import { RiskFeedPanel } from "@/components/dashboard/RiskFeedPanel";
 import { AnalysisMetric } from "@/components/layout/AnalysisMetric";
 import { HeroBadge, PageHeader } from "@/components/layout/PageHeader";
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import { formatTonnes } from "@/lib/format";
 import type { RiskSeverity } from "@/lib/mine-data";
 
@@ -13,6 +14,7 @@ const RANK: Record<RiskSeverity, number> = { LOW: 0, MEDIUM: 1, HIGH: 2, CRITICA
 
 export function RiskPage() {
   const { mine, scenario, loggedAlertImpactTonnes } = useDashboard();
+  const t = useUiText();
   const highest = mine.riskAlerts.reduce<RiskSeverity | null>(
     (current, alert) =>
       current === null || RANK[alert.severity] > RANK[current] ? alert.severity : current,
@@ -27,52 +29,55 @@ export function RiskPage() {
   return (
     <div className="space-y-5 sm:space-y-6">
       <PageHeader
-        eyebrow="Operational assurance"
-        title={`Focus attention where ${mine.label} can lose the most.`}
-        description="See active issues in priority order, understand their estimated production impact, and compare known alerts with the broader scenario shortfall."
+        eyebrow={t("nav.risk.eyebrow")}
+        title={t("risk.title", { mine: mine.label })}
+        description={t("risk.desc")}
         icon={ShieldAlert}
         badges={
           <>
             <HeroBadge tone={highest === "CRITICAL" ? "rose" : "amber"}>
-              Highest alert: {highest ?? "None"}
+              {t("risk.highest", { level: highest ?? t("common.none") })}
             </HeroBadge>
-            <HeroBadge>{mine.riskAlerts.length} open alerts</HeroBadge>
-            <HeroBadge tone="rose">Scenario: {scenario.riskLevel}</HeroBadge>
+            <HeroBadge>{t("risk.openCount", { count: mine.riskAlerts.length })}</HeroBadge>
+            <HeroBadge tone="rose">{t("risk.scenario", { level: scenario.riskLevel })}</HeroBadge>
           </>
         }
       />
 
-      <section aria-label="Risk indicators" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <section
+        aria-label={t("nav.risk.label")}
+        className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
         <AnalysisMetric
-          label="Known alert impact"
+          label={t("risk.m.known")}
           provenance="simulated"
           value={`−${formatTonnes(loggedAlertImpactTonnes)} T`}
-          description="Combined estimated impact of the currently logged mine alerts."
+          description={t("risk.m.knownDesc")}
           icon={Siren}
           tone="rose"
         />
         <AnalysisMetric
-          label="Scenario shortfall"
+          label={t("risk.m.shortfall")}
           provenance="modelled"
           value={`−${formatTonnes(scenario.shortfallTonnes)} T`}
-          description="Output at risk under the selected rainfall and downtime inputs."
+          description={t("risk.m.shortfallDesc")}
           icon={AlertTriangle}
           tone="amber"
         />
         <AnalysisMetric
-          label="Explained coverage"
+          label={t("risk.m.coverage")}
           provenance="modelled"
           value={`${coverage.toFixed(0)}%`}
-          description="Share of scenario shortfall represented by explicitly logged alerts."
+          description={t("risk.m.coverageDesc")}
           icon={Scale}
           tone="violet"
           progress={coverage}
         />
         <AnalysisMetric
-          label="Unexplained gap"
+          label={t("risk.m.gap")}
           provenance="modelled"
           value={`${formatTonnes(gap)} T`}
-          description="Residual shortfall to investigate beyond the current alert register."
+          description={t("risk.m.gapDesc")}
           icon={ShieldCheck}
           tone={gap > 1000 ? "rose" : "teal"}
         />
@@ -81,9 +86,9 @@ export function RiskPage() {
       <section className="grid items-start gap-4 xl:grid-cols-[1.15fr_0.85fr]">
         <RiskFeedPanel />
         <Panel
-          title="Response Queue"
+          title={t("risk.queue")}
           provenance="modelled"
-          description="A practical order of work generated from the current scenario."
+          description={t("risk.queueDesc")}
           right={<RiskBadge severity={scenario.riskLevel} />}
         >
           <ol className="space-y-3">
@@ -99,21 +104,22 @@ export function RiskPage() {
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <div className="pt-0.5">
-                  <p className="text-[11px] leading-5 text-foreground">{directive}</p>
+                  <p className="text-[11px] leading-5 text-foreground" lang="en">
+                    {directive}
+                  </p>
                   <p className="mt-1 font-mono text-[9px] uppercase tracking-[0.12em] text-muted-foreground">
                     {index === 0
-                      ? "Act first"
+                      ? t("risk.actFirst")
                       : index === scenario.directives.length - 1
-                        ? "Close the loop"
-                        : "Then proceed"}
+                        ? t("risk.closeLoop")
+                        : t("risk.thenProceed")}
                   </p>
                 </div>
               </li>
             ))}
           </ol>
           <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-3 text-[10px] leading-4 text-amber-900">
-            Alerts in this prototype are scenario fixtures. Confirm any operational action with the
-            mine control room and current statutory procedures.
+            {t("risk.disclaimer")}
           </div>
         </Panel>
       </section>

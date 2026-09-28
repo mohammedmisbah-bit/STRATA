@@ -1,6 +1,7 @@
 import { Layers } from "lucide-react";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useUiText } from "@/i18n/use-ui-text";
 import type { SpectralTone } from "@/lib/mine-data";
 import { cn } from "@/lib/utils";
 
@@ -12,11 +13,12 @@ const READING_CLASSES: Record<SpectralTone, string> = {
 
 export function SpectralView() {
   const { mine } = useDashboard();
+  const t = useUiText();
 
   if (mine.spectralLayers.length === 0) {
     return (
       <div className="grid h-full min-h-[340px] place-items-center rounded-md border border-dashed border-border bg-panel-grid text-xs text-muted-foreground">
-        No spectral layers available for {mine.label}.
+        {t("spectral.empty", { mine: mine.label })}
       </div>
     );
   }
@@ -26,7 +28,7 @@ export function SpectralView() {
       {mine.spectralLayers.map((layer) => (
         <article
           key={layer.id}
-          className="flex flex-col rounded-lg border border-border bg-card p-4 shadow-sm transition-all duration-300 ease-in-out hover:shadow-md"
+          className="flex flex-col rounded-lg border border-border bg-card p-4 shadow-sm lift-card"
         >
           <div className="flex items-center gap-2">
             <Layers className="size-4 shrink-0 text-teal" aria-hidden="true" />

@@ -61,7 +61,7 @@ export function AnalysisMetric({
   const clamped = progress === undefined ? undefined : Math.min(100, Math.max(0, progress));
 
   return (
-    <article className="group relative isolate min-h-36 overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-28px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.16)] ring-1 ring-slate-950/[0.025] transition duration-300 hover:-translate-y-0.5 hover:shadow-[0_24px_55px_-30px_rgba(15,23,42,0.55)] sm:p-5">
+    <article className="lift-card group relative isolate min-h-36 overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-28px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.16)] ring-1 ring-slate-950/[0.025] sm:p-5">
       <span
         className={cn(
           "absolute -right-12 -top-12 -z-10 size-32 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-125",
@@ -74,7 +74,7 @@ export function AnalysisMetric({
           <p className="text-[11px] font-semibold uppercase tracking-[0.13em] text-muted-foreground">
             {label}
           </p>
-          <p className="mt-2 font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground">
+          <p className="mt-2 font-mono text-2xl font-semibold tracking-[-0.04em] text-foreground tabular-nums">
             {value}
           </p>
         </div>
@@ -93,9 +93,13 @@ export function AnalysisMetric({
           aria-valuemax={100}
           aria-valuenow={Math.round(clamped)}
         >
+          {/* scaleX instead of width: animates on the compositor, no layout per frame. */}
           <div
-            className={cn("h-full rounded-full transition-[width] duration-700", palette.bar)}
-            style={{ width: `${clamped}%` }}
+            className={cn(
+              "h-full origin-left rounded-full transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]",
+              palette.bar,
+            )}
+            style={{ transform: `scaleX(${clamped / 100})` }}
           />
         </div>
       )}

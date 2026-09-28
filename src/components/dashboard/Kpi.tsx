@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 
 import { cn } from "@/lib/utils";
 
-import { PANEL_HOVER } from "./Panel";
 import { ProvenanceBadge, type Provenance } from "./ProvenanceBadge";
 
 export type KpiTone = "plain" | "teal" | "coral";
@@ -53,8 +52,7 @@ export function Kpi({
   return (
     <article
       className={cn(
-        "group relative isolate min-h-[9.25rem] overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-30px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.14)] ring-1 ring-slate-950/[0.025]",
-        PANEL_HOVER,
+        "lift-card group relative isolate min-h-[9.25rem] overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-30px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.14)] ring-1 ring-slate-950/[0.025]",
         pulse && "animate-soft-glow",
       )}
     >
@@ -85,7 +83,12 @@ export function Kpi({
       <p className="mt-4 text-[10px] font-bold uppercase tracking-[0.14em] text-muted-foreground">
         {label}
       </p>
-      <p className={cn("mt-1 font-mono text-xl font-semibold tracking-[-0.04em]", palette.value)}>
+      <p
+        className={cn(
+          "mt-1 font-mono text-xl font-semibold tracking-[-0.04em] tabular-nums",
+          palette.value,
+        )}
+      >
         {value}
       </p>
       {caption ? (
