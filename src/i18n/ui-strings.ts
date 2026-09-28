@@ -859,6 +859,293 @@ export const UI_STRINGS = {
     hi: "वर्तमान डाउनटाइम और वर्षा इनपुट से {mine} के लिए दो-वाक्य का समाधान निर्देश बनाएँ। Groq उपलब्ध न होने पर नियम आधारित निर्देश दिखता है।",
     mr: "सध्याच्या डाउनटाइम आणि पाऊस इनपुटवरून {mine} साठी दोन वाक्यांचा उपाय निर्देश तयार करा. Groq उपलब्ध नसल्यास नियम आधारित निर्देश दिसतो.",
   },
+
+  // --- Landing page -----------------------------------------------------------
+  "landing.nav.challenge": { en: "The challenge", hi: "चुनौती", mr: "आव्हान" },
+  "landing.nav.approach": { en: "Our approach", hi: "हमारा समाधान", mr: "आमचा उपाय" },
+  "landing.nav.how": { en: "How it works", hi: "यह कैसे काम करता है", mr: "हे कसे काम करते" },
+  "landing.nav.trust": { en: "Data trust", hi: "डेटा विश्वसनीयता", mr: "डेटा विश्वासार्हता" },
+  "landing.nav.label": { en: "Page sections", hi: "पृष्ठ अनुभाग", mr: "पानाचे विभाग" },
+  "landing.dashboard": { en: "Dashboard", hi: "डैशबोर्ड", mr: "डॅशबोर्ड" },
+  "landing.hero.eyebrow": {
+    en: "Manganese intelligence for MOIL operations",
+    hi: "MOIL संचालन के लिए मैंगनीज़ इंटेलिजेंस",
+    mr: "MOIL कामकाजासाठी मँगनीज इंटेलिजन्स",
+  },
+  "landing.hero.title": {
+    en: "From ore body to monthly output — one clear picture.",
+    hi: "अयस्क भंडार से मासिक उत्पादन तक — एक स्पष्ट तस्वीर।",
+    mr: "धातुक साठ्यापासून मासिक उत्पादनापर्यंत — एक स्पष्ट चित्र.",
+  },
+  "landing.hero.desc": {
+    en: "STRATA brings geology, production, operational risk and weather into one plain-language workspace, so mine teams can see problems early and act before tonnes are lost.",
+    hi: "STRATA भूविज्ञान, उत्पादन, परिचालन जोखिम और मौसम को एक सरल कार्यक्षेत्र में लाता है, ताकि खदान टीमें समस्याएँ पहले देख सकें और टन का नुकसान होने से पहले कार्य कर सकें।",
+    mr: "STRATA भूविज्ञान, उत्पादन, कामकाजातील जोखीम आणि हवामान एकाच सोप्या कार्यक्षेत्रात आणते, जेणेकरून खाण टीमना समस्या लवकर दिसतात आणि टनांचे नुकसान होण्यापूर्वी कृती करता येते.",
+  },
+  "landing.hero.cta": { en: "Open Dashboard", hi: "डैशबोर्ड खोलें", mr: "डॅशबोर्ड उघडा" },
+  "landing.hero.secondary": { en: "See the challenge", hi: "चुनौती देखें", mr: "आव्हान पाहा" },
+  "landing.preview.title": {
+    en: "Live scenario preview",
+    hi: "लाइव परिदृश्य झलक",
+    mr: "थेट परिस्थिती झलक",
+  },
+  "landing.preview.caption": {
+    en: "Calculated from the current scenario inputs",
+    hi: "वर्तमान परिदृश्य इनपुट से गणना",
+    mr: "सध्याच्या परिस्थिती इनपुटवरून मोजले",
+  },
+  "landing.preview.open": {
+    en: "Adjust this scenario",
+    hi: "यह परिदृश्य बदलें",
+    mr: "ही परिस्थिती बदला",
+  },
+
+  "landing.stat.steel": {
+    en: "of manganese is used in steelmaking (global, approx.)",
+    hi: "मैंगनीज़ का उपयोग इस्पात निर्माण में होता है (वैश्विक, लगभग)",
+    mr: "मँगनीजचा वापर पोलाद निर्मितीत होतो (जागतिक, अंदाजे)",
+  },
+  "landing.stat.depth": {
+    en: "depth of Balaghat, Asia's deepest underground manganese mine",
+    hi: "बालाघाट की गहराई, एशिया की सबसे गहरी भूमिगत मैंगनीज़ खदान",
+    mr: "बालाघाटची खोली, आशियातील सर्वात खोल भूमिगत मँगनीज खाण",
+  },
+  "landing.stat.mines": {
+    en: "MOIL mines modelled across Madhya Pradesh and Maharashtra",
+    hi: "मध्य प्रदेश और महाराष्ट्र में मॉडल की गई MOIL खदानें",
+    mr: "मध्य प्रदेश आणि महाराष्ट्रातील मॉडेल केलेल्या MOIL खाणी",
+  },
+  "landing.stat.languages": {
+    en: "interface languages: English, Hindi and Marathi",
+    hi: "इंटरफ़ेस भाषाएँ: अंग्रेज़ी, हिन्दी और मराठी",
+    mr: "इंटरफेस भाषा: इंग्रजी, हिंदी आणि मराठी",
+  },
+
+  "landing.challenge.eyebrow": { en: "The challenge", hi: "चुनौती", mr: "आव्हान" },
+  "landing.challenge.title": {
+    en: "Manganese mining runs on decisions made with fragmented information.",
+    hi: "मैंगनीज़ खनन के निर्णय बिखरी हुई जानकारी के आधार पर लिए जाते हैं।",
+    mr: "मँगनीज खाणकामाचे निर्णय विखुरलेल्या माहितीच्या आधारे घेतले जातात.",
+  },
+  "landing.challenge.desc": {
+    en: "Output depends on deep, weather-exposed operations — but the evidence needed to run them well sits in separate systems.",
+    hi: "उत्पादन गहरे और मौसम पर निर्भर संचालन पर टिका है — पर उन्हें अच्छी तरह चलाने के लिए ज़रूरी प्रमाण अलग-अलग प्रणालियों में हैं।",
+    mr: "उत्पादन खोल आणि हवामानावर अवलंबून असलेल्या कामकाजावर टिकते — पण ते चांगले चालवण्यासाठी लागणारे पुरावे वेगवेगळ्या प्रणालींमध्ये आहेत.",
+  },
+  "landing.challenge.1.title": {
+    en: "Deep workings with single points of failure",
+    hi: "एकल विफलता बिंदु वाली गहरी खदानें",
+    mr: "एकाच बिघाड बिंदूवर अवलंबून खोल खाणी",
+  },
+  "landing.challenge.1.desc": {
+    en: "Underground mines reach hundreds of metres. When a shaft hoist or incline belt stops, the whole mine's output stops with it.",
+    hi: "भूमिगत खदानें सैकड़ों मीटर गहरी हैं। शाफ्ट होइस्ट या इनक्लाइन बेल्ट रुकते ही पूरी खदान का उत्पादन रुक जाता है।",
+    mr: "भूमिगत खाणी शेकडो मीटर खोल आहेत. शाफ्ट होईस्ट किंवा इनक्लाइन बेल्ट थांबला की संपूर्ण खाणीचे उत्पादन थांबते.",
+  },
+  "landing.challenge.2.title": {
+    en: "Monsoon disruption",
+    hi: "मानसून से बाधा",
+    mr: "मान्सूनमुळे अडथळा",
+  },
+  "landing.challenge.2.desc": {
+    en: "Heavy rain floods benches, softens haul roads and forces dewatering. The tonnage at risk is rarely known before the rain arrives.",
+    hi: "भारी वर्षा बेंच डुबो देती है, ढुलाई सड़कें कमज़ोर करती है और पानी निकालना पड़ता है। जोखिम में टन भार वर्षा से पहले शायद ही पता होता है।",
+    mr: "मुसळधार पाऊस बेंच बुडवतो, वाहतूक रस्ते कमकुवत करतो आणि पाणी उपसावे लागते. धोक्यात असलेले टन पावसापूर्वी क्वचितच कळतात.",
+  },
+  "landing.challenge.3.title": {
+    en: "Scattered geological evidence",
+    hi: "बिखरे हुए भूवैज्ञानिक प्रमाण",
+    mr: "विखुरलेले भूवैज्ञानिक पुरावे",
+  },
+  "landing.challenge.3.desc": {
+    en: "Geological maps, GIS layers, satellite indicators and company filings live in different places, so exploration choices are slow to justify.",
+    hi: "भूवैज्ञानिक मानचित्र, GIS परतें, उपग्रह संकेतक और कंपनी फाइलिंग अलग-अलग जगह हैं, इसलिए अन्वेषण के निर्णय सही ठहराने में समय लगता है।",
+    mr: "भूवैज्ञानिक नकाशे, GIS स्तर, उपग्रह निर्देशक आणि कंपनी फाइलिंग वेगवेगळ्या ठिकाणी आहेत, त्यामुळे शोधकामाचे निर्णय सिद्ध करायला वेळ लागतो.",
+  },
+  "landing.challenge.4.title": {
+    en: "Insights that arrive too late",
+    hi: "देर से मिलने वाली जानकारी",
+    mr: "उशिरा मिळणारी माहिती",
+  },
+  "landing.challenge.4.desc": {
+    en: "Plans live in spreadsheets and English-only reports. Shift teams working in Hindi or Marathi often get the full picture after the loss has happened.",
+    hi: "योजनाएँ स्प्रेडशीट और केवल अंग्रेज़ी रिपोर्टों में रहती हैं। हिन्दी या मराठी में काम करने वाली शिफ्ट टीमों को पूरी तस्वीर अक्सर नुकसान के बाद मिलती है।",
+    mr: "योजना स्प्रेडशीट आणि केवळ इंग्रजी अहवालांत असतात. हिंदी किंवा मराठीत काम करणाऱ्या शिफ्ट टीमना संपूर्ण चित्र अनेकदा नुकसान झाल्यानंतर मिळते.",
+  },
+
+  "landing.approach.eyebrow": { en: "Our approach", hi: "हमारा समाधान", mr: "आमचा उपाय" },
+  "landing.approach.title": {
+    en: "One workspace that turns each challenge into an action.",
+    hi: "एक कार्यक्षेत्र जो हर चुनौती को कार्रवाई में बदलता है।",
+    mr: "एक कार्यक्षेत्र जे प्रत्येक आव्हानाचे कृतीत रूपांतर करते.",
+  },
+  "landing.approach.desc": {
+    en: "Every page answers one practical question, in plain language, with its data source always visible.",
+    hi: "हर पृष्ठ सरल भाषा में एक व्यावहारिक प्रश्न का उत्तर देता है, और उसका डेटा स्रोत हमेशा दिखता है।",
+    mr: "प्रत्येक पान सोप्या भाषेत एका व्यावहारिक प्रश्नाचे उत्तर देते आणि त्याचा डेटा स्रोत नेहमी दिसतो.",
+  },
+  "landing.approach.prospectivity.q": {
+    en: "Where is the ore worth chasing?",
+    hi: "किस अयस्क के पीछे जाना लाभदायक है?",
+    mr: "कोणत्या धातुकाचा पाठपुरावा करणे फायदेशीर आहे?",
+  },
+  "landing.approach.prospectivity.a": {
+    en: "Geology overlay, satellite indicators and model confidence on one map.",
+    hi: "एक ही मानचित्र पर भूविज्ञान ओवरले, उपग्रह संकेतक और मॉडल विश्वसनीयता।",
+    mr: "एकाच नकाशावर भूविज्ञान ओव्हरले, उपग्रह निर्देशक आणि मॉडेल विश्वासार्हता.",
+  },
+  "landing.approach.production.q": {
+    en: "Are we on target — and if not, why?",
+    hi: "क्या हम लक्ष्य पर हैं — और नहीं, तो क्यों?",
+    mr: "आपण लक्ष्यावर आहोत का — नसल्यास का?",
+  },
+  "landing.approach.production.a": {
+    en: "Monthly trend, day-level drivers and the current scenario side by side.",
+    hi: "मासिक रुझान, दैनिक कारक और वर्तमान परिदृश्य एक साथ।",
+    mr: "मासिक कल, दैनिक घटक आणि सध्याची परिस्थिती शेजारी शेजारी.",
+  },
+  "landing.approach.risk.q": {
+    en: "What could cost us the most right now?",
+    hi: "अभी हमें सबसे अधिक नुकसान किससे हो सकता है?",
+    mr: "आत्ता आपले सर्वाधिक नुकसान कशामुळे होऊ शकते?",
+  },
+  "landing.approach.risk.a": {
+    en: "Alerts ranked by tonnage, compared with the modelled shortfall.",
+    hi: "टन भार के अनुसार क्रमबद्ध अलर्ट, मॉडल आधारित कमी से तुलना सहित।",
+    mr: "टनांनुसार क्रमवारी लावलेल्या सूचना, मॉडेल आधारित तुटीशी तुलनेसह.",
+  },
+  "landing.approach.simulator.q": {
+    en: "What happens if it rains, or the hoist stops?",
+    hi: "वर्षा हो या होइस्ट रुक जाए तो क्या होगा?",
+    mr: "पाऊस पडला किंवा होईस्ट थांबला तर काय होईल?",
+  },
+  "landing.approach.simulator.a": {
+    en: "Test downtime and rainfall, see the impact in tonnes, and get a mitigation plan.",
+    hi: "डाउनटाइम और वर्षा परखें, टन में प्रभाव देखें और समाधान योजना पाएँ।",
+    mr: "डाउनटाइम आणि पावसाची चाचणी घ्या, टनांमध्ये परिणाम पाहा आणि उपाय योजना मिळवा.",
+  },
+
+  "landing.how.eyebrow": { en: "How it works", hi: "यह कैसे काम करता है", mr: "हे कसे काम करते" },
+  "landing.how.title": {
+    en: "Three steps from raw data to a decision.",
+    hi: "कच्चे डेटा से निर्णय तक तीन चरण।",
+    mr: "कच्च्या डेटापासून निर्णयापर्यंत तीन पायऱ्या.",
+  },
+  "landing.how.1.title": {
+    en: "Bring the sources together",
+    hi: "स्रोतों को एक साथ लाएँ",
+    mr: "स्रोत एकत्र आणा",
+  },
+  "landing.how.1.desc": {
+    en: "Official MOIL filings, GSI / NGDR geology, satellite indicators and live Open-Meteo rainfall in one place.",
+    hi: "आधिकारिक MOIL फाइलिंग, GSI / NGDR भूविज्ञान, उपग्रह संकेतक और लाइव Open-Meteo वर्षा एक ही जगह।",
+    mr: "अधिकृत MOIL फाइलिंग, GSI / NGDR भूविज्ञान, उपग्रह निर्देशक आणि थेट Open-Meteo पाऊस एकाच ठिकाणी.",
+  },
+  "landing.how.2.title": {
+    en: "Model the impact",
+    hi: "प्रभाव का मॉडल बनाएँ",
+    mr: "परिणामाचे मॉडेल करा",
+  },
+  "landing.how.2.desc": {
+    en: "A transparent model prices disruption in tonnes: 140 T per hour of hoist downtime and 55 T per millimetre of rain.",
+    hi: "एक पारदर्शी मॉडल बाधा को टन में मापता है: होइस्ट डाउनटाइम के प्रति घंटे 140 T और प्रति मिलीमीटर वर्षा 55 T।",
+    mr: "एक पारदर्शक मॉडेल अडथळा टनांमध्ये मोजते: होईस्ट डाउनटाइमच्या प्रत्येक तासाला 140 T आणि प्रत्येक मिलिमीटर पावसाला 55 T.",
+  },
+  "landing.how.3.title": {
+    en: "Act with confidence",
+    hi: "आत्मविश्वास से कार्य करें",
+    mr: "आत्मविश्वासाने कृती करा",
+  },
+  "landing.how.3.desc": {
+    en: "Ranked risks and a mitigation directive the shift team can use straight away, in their own language.",
+    hi: "क्रमबद्ध जोखिम और समाधान निर्देश, जिन्हें शिफ्ट टीम तुरंत अपनी भाषा में उपयोग कर सके।",
+    mr: "क्रमवारी लावलेल्या जोखमी आणि उपाय निर्देश, जे शिफ्ट टीम लगेच स्वतःच्या भाषेत वापरू शकते.",
+  },
+
+  "landing.trust.eyebrow": {
+    en: "Data you can trust",
+    hi: "भरोसेमंद डेटा",
+    mr: "विश्वासार्ह डेटा",
+  },
+  "landing.trust.title": {
+    en: "Every number shows where it came from.",
+    hi: "हर संख्या बताती है कि वह कहाँ से आई।",
+    mr: "प्रत्येक आकडा तो कुठून आला हे सांगतो.",
+  },
+  "landing.trust.desc": {
+    en: "STRATA never presents a model as a measurement. Each card carries one of four labels:",
+    hi: "STRATA कभी भी मॉडल को मापन के रूप में नहीं दिखाता। हर कार्ड पर चार में से एक लेबल होता है:",
+    mr: "STRATA कधीही मॉडेलला मोजमाप म्हणून दाखवत नाही. प्रत्येक कार्डवर चारपैकी एक लेबल असते:",
+  },
+  "landing.trust.official": {
+    en: "Taken from MOIL SEBI / NSE corporate filings.",
+    hi: "MOIL SEBI / NSE कॉर्पोरेट फाइलिंग से लिया गया।",
+    mr: "MOIL SEBI / NSE कॉर्पोरेट फाइलिंगमधून घेतलेले.",
+  },
+  "landing.trust.modelled": {
+    en: "Calculated from your current inputs by the scenario model.",
+    hi: "परिदृश्य मॉडल द्वारा आपके वर्तमान इनपुट से गणना।",
+    mr: "परिस्थिती मॉडेलद्वारे तुमच्या सध्याच्या इनपुटवरून मोजलेले.",
+  },
+  "landing.trust.simulated": {
+    en: "Illustrative placeholder data, not measured.",
+    hi: "उदाहरण के लिए डेटा, मापा हुआ नहीं।",
+    mr: "उदाहरणासाठी डेटा, मोजलेला नाही.",
+  },
+  "landing.trust.synthetic": {
+    en: "Reproducible generated data that demonstrates the workflow.",
+    hi: "कार्यप्रवाह दिखाने के लिए पुनरुत्पादनीय कृत्रिम डेटा।",
+    mr: "कार्यप्रवाह दाखवण्यासाठी पुनरुत्पादित करता येणारा कृत्रिम डेटा.",
+  },
+  "landing.trust.note": {
+    en: "STRATA is a working prototype. Monthly targets, alerts and the geology overlay are illustrative until live data sources are connected.",
+    hi: "STRATA एक कार्यशील प्रोटोटाइप है। लाइव डेटा स्रोत जुड़ने तक मासिक लक्ष्य, अलर्ट और भूविज्ञान ओवरले उदाहरणात्मक हैं।",
+    mr: "STRATA हा कार्यरत प्रोटोटाइप आहे. थेट डेटा स्रोत जोडले जाईपर्यंत मासिक लक्ष्य, सूचना आणि भूविज्ञान ओव्हरले उदाहरणात्मक आहेत.",
+  },
+
+  "landing.access.eyebrow": {
+    en: "Built for everyone on site",
+    hi: "स्थल पर सभी के लिए",
+    mr: "स्थळावरील सर्वांसाठी",
+  },
+  "landing.access.title": {
+    en: "Clear enough for the shift team, deep enough for planners.",
+    hi: "शिफ्ट टीम के लिए सरल, योजनाकारों के लिए पर्याप्त गहन।",
+    mr: "शिफ्ट टीमसाठी सोपे, नियोजकांसाठी पुरेसे सखोल.",
+  },
+  "landing.access.1": {
+    en: "Switch between English, हिन्दी and मराठी instantly",
+    hi: "English, हिन्दी और मराठी के बीच तुरंत बदलें",
+    mr: "English, हिन्दी आणि मराठी यांमध्ये लगेच बदला",
+  },
+  "landing.access.2": {
+    en: "Plain-language explanations beside every specialist metric",
+    hi: "हर विशेषज्ञ मीट्रिक के साथ सरल भाषा में व्याख्या",
+    mr: "प्रत्येक तज्ज्ञ निर्देशकासोबत सोप्या भाषेत स्पष्टीकरण",
+  },
+  "landing.access.3": {
+    en: "Works on phones, tablets and control-room screens",
+    hi: "फ़ोन, टैबलेट और नियंत्रण कक्ष स्क्रीन पर काम करता है",
+    mr: "फोन, टॅबलेट आणि नियंत्रण कक्षाच्या स्क्रीनवर चालते",
+  },
+
+  "landing.cta.title": {
+    en: "See your mines the way STRATA does.",
+    hi: "अपनी खदानों को STRATA की नज़र से देखें।",
+    mr: "तुमच्या खाणी STRATA च्या नजरेतून पाहा.",
+  },
+  "landing.cta.desc": {
+    en: "Open the dashboard to explore Balaghat, Dongri Buzurg, Chikla, Kandri and Ukwa.",
+    hi: "बालाघाट, डोंगरी बुज़ुर्ग, चिकला, कांद्री और उकवा देखने के लिए डैशबोर्ड खोलें।",
+    mr: "बालाघाट, डोंगरी बुजुर्ग, चिकला, कांद्री आणि उकवा पाहण्यासाठी डॅशबोर्ड उघडा.",
+  },
+  "landing.footer.tag": {
+    en: "Manganese intelligence prototype",
+    hi: "मैंगनीज़ इंटेलिजेंस प्रोटोटाइप",
+    mr: "मँगनीज इंटेलिजन्स प्रोटोटाइप",
+  },
+  "landing.footer.sources": { en: "Data sources", hi: "डेटा स्रोत", mr: "डेटा स्रोत" },
+  "landing.backToTop": { en: "Back to top", hi: "ऊपर जाएँ", mr: "वर जा" },
 } as const satisfies Record<string, Entry>;
 
 export type UiKey = keyof typeof UI_STRINGS;

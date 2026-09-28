@@ -25,7 +25,7 @@ const ACCENT_STYLES = {
 export function OverviewPage() {
   const { mine, scenario, mineSource } = useDashboard();
   const t = useUiText();
-  const detailPages = APP_NAVIGATION.filter((item) => item.path !== "/");
+  const detailPages = APP_NAVIGATION.filter((item) => item.id !== "overview");
 
   return (
     <div className="space-y-5 sm:space-y-6">

@@ -473,3 +473,25 @@
     font-size: 8px !important;
   }
 }
+
+/* Landing page ------------------------------------------------------------ */
+
+/* Smooth in-page anchor scrolling only on the landing page. The dashboard keeps
+   instant scroll so route changes never animate a scroll reset. The global
+   reduced-motion rule (html matches `*`, with !important) still wins. */
+html:has(.strata-landing) {
+  scroll-behavior: smooth;
+}
+
+/* Hero entrance: opacity + transform only, staggered with --rise-delay. */
+@keyframes landing-rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+@utility landing-rise {
+  animation: landing-rise 640ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: var(--rise-delay, 0ms);
+}

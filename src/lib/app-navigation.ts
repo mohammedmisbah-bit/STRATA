@@ -7,7 +7,8 @@ import {
   SlidersHorizontal,
 } from "lucide-react";
 
-export type AppPath = "/" | "/prospectivity" | "/production" | "/risk" | "/simulator";
+/** Workspace routes. The public landing page lives at "/" outside this list. */
+export type AppPath = "/dashboard" | "/prospectivity" | "/production" | "/risk" | "/simulator";
 
 /** Keys into `nav.<id>.*` in the UI string dictionary. */
 export type NavId = "overview" | "prospectivity" | "production" | "risk" | "simulator";
@@ -20,7 +21,7 @@ export type AppNavigationItem = {
 };
 
 export const APP_NAVIGATION: readonly AppNavigationItem[] = [
-  { id: "overview", path: "/", icon: LayoutDashboard, accent: "teal" },
+  { id: "overview", path: "/dashboard", icon: LayoutDashboard, accent: "teal" },
   { id: "prospectivity", path: "/prospectivity", icon: MapPinned, accent: "violet" },
   { id: "production", path: "/production", icon: ChartNoAxesCombined, accent: "sky" },
   { id: "risk", path: "/risk", icon: ShieldAlert, accent: "rose" },
@@ -28,7 +29,7 @@ export const APP_NAVIGATION: readonly AppNavigationItem[] = [
 ];
 
 export function isNavigationActive(pathname: string, target: AppPath): boolean {
-  return target === "/" ? pathname === "/" : pathname.startsWith(target);
+  return pathname === target || pathname.startsWith(`${target}/`);
 }
 
 export function navigationForPath(pathname: string): AppNavigationItem {

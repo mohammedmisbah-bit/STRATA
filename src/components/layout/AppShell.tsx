@@ -355,7 +355,13 @@ export function AppShell({ children }: { children: ReactNode }) {
         <div className="strata-contours absolute inset-0 opacity-30" aria-hidden="true" />
         <div className="relative flex h-full flex-col p-5">
           <div className="border-b border-white/8 pb-5">
-            <StrataMark t={t} />
+            {/* The logo returns to the public landing page. */}
+            <Link
+              to="/"
+              className="block rounded-2xl focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:outline-none"
+            >
+              <StrataMark t={t} />
+            </Link>
           </div>
           <p className="mb-2 mt-5 px-3 font-mono text-[9px] font-semibold uppercase tracking-[0.2em] text-slate-600">
             {t("shell.workspaces")}

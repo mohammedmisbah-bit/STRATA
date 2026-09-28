@@ -6,7 +6,7 @@ import { OverviewPage } from "@/components/pages/OverviewPage";
 const DESCRIPTION =
   "A clear operational overview of manganese prospectivity, production, risk and scenario planning across MOIL mines.";
 
-export const Route = createFileRoute("/_app/")({
+export const Route = createFileRoute("/_app/dashboard")({
   head: () => ({
     meta: [
       { title: "Command Center | STRATA" },

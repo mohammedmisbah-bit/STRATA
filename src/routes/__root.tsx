@@ -66,7 +66,7 @@ function NotFoundComponent() {
       icon={<Mountain className="size-6" aria-hidden="true" />}
     >
       <Link
-        to="/"
+        to="/dashboard"
         className="inline-flex items-center gap-2 rounded-xl bg-[#0b3940] px-4 py-2.5 text-xs font-bold text-white transition hover:-translate-y-0.5 hover:bg-[#0f4b53] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Home className="size-3.5" aria-hidden="true" />
@@ -99,7 +99,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         Try again
       </button>
       <a
-        href="/"
+        href="/dashboard"
         className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-xs font-bold text-foreground transition hover:bg-secondary focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
       >
         <Home className="size-3.5" aria-hidden="true" />
