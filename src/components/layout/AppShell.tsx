@@ -30,6 +30,7 @@ import {
   type AppNavigationItem,
 } from "@/lib/app-navigation";
 import { cn } from "@/lib/utils";
+import { whenIdle } from "@/lib/view-transitions";
 
 function StrataMark({ t }: { t: UiTranslate }) {
   return (
@@ -172,7 +173,10 @@ function DataTrustCard({ t }: { t: UiTranslate }) {
 
   return (
     <div className="relative overflow-hidden rounded-2xl border border-white/8 bg-white/[0.045] p-3.5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]">
-      <span className="absolute -right-8 -top-8 size-20 rounded-full bg-teal-300/10 blur-2xl" />
+      <span
+        className="glow-teal absolute -right-12 -top-12 size-32 opacity-60"
+        aria-hidden="true"
+      />
       <div className="relative flex items-center justify-between gap-2">
         <span className="flex items-center gap-2 text-[11px] font-semibold text-slate-200">
           <Icon className="size-3.5 text-teal-300" aria-hidden="true" />
@@ -284,49 +288,17 @@ function MobileBottomNavigation({ pathname, t }: { pathname: string; t: UiTransl
  * Warms every workspace chunk once the browser is idle, so the first click on
  * any tab is instant instead of waiting on a network round trip.
  */
-/**
- * A new route transition skips any still-running one; the browser then rejects
- * that transition's promises. The router doesn't observe them, so each quick
- * double-click logged an uncaught "Transition was skipped" AbortError. Marking
- * them handled keeps the console clean without changing behaviour.
- */
-function useQuietViewTransitions() {
-  useEffect(() => {
-    if (typeof document.startViewTransition !== "function") return;
-    const original = document.startViewTransition.bind(document);
-    const quiet: typeof document.startViewTransition = (...args: unknown[]) => {
-      const transition = (original as (...a: unknown[]) => ViewTransition)(...args);
-      for (const promise of [
-        transition.ready,
-        transition.finished,
-        transition.updateCallbackDone,
-      ]) {
-        promise.catch(() => undefined);
-      }
-      return transition;
-    };
-    document.startViewTransition = quiet;
-    return () => {
-      document.startViewTransition = original;
-    };
-  }, []);
-}
-
 function usePreloadWorkspaces() {
   const router = useRouter();
-  useEffect(() => {
-    const preload = () => {
-      for (const item of APP_NAVIGATION) {
-        void router.preloadRoute({ to: item.path }).catch(() => undefined);
-      }
-    };
-    if (typeof window.requestIdleCallback === "function") {
-      const handle = window.requestIdleCallback(preload, { timeout: 2500 });
-      return () => window.cancelIdleCallback(handle);
-    }
-    const handle = window.setTimeout(preload, 1200);
-    return () => window.clearTimeout(handle);
-  }, [router]);
+  useEffect(
+    () =>
+      whenIdle(() => {
+        for (const item of APP_NAVIGATION) {
+          void router.preloadRoute({ to: item.path }).catch(() => undefined);
+        }
+      }),
+    [router],
+  );
 }
 
 export function AppShell({ children }: { children: ReactNode }) {
@@ -336,7 +308,6 @@ export function AppShell({ children }: { children: ReactNode }) {
   const { mine, mineSource } = useDashboard();
   const t = useUiText();
   usePreloadWorkspaces();
-  useQuietViewTransitions();
 
   return (
     <div className="min-h-screen bg-background font-sans text-foreground">
@@ -420,7 +391,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         <main
           id="main-content"
-          className="mx-auto w-full max-w-[1700px] px-3 pb-28 pt-4 [view-transition-name:strata-main] sm:px-5 sm:pt-5 lg:px-7 lg:pb-8 lg:pt-6"
+          className="mx-auto w-full max-w-[1700px] px-3 pb-28 pt-4 sm:px-5 sm:pt-5 lg:px-7 lg:pb-8 lg:pt-6"
         >
           {children}
         </main>

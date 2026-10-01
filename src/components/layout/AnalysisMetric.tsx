@@ -6,32 +6,32 @@ import { cn } from "@/lib/utils";
 const TONES = {
   teal: {
     icon: "bg-teal-soft text-teal",
-    glow: "bg-teal/15",
+    glow: "text-teal",
     bar: "bg-teal",
   },
   amber: {
     icon: "bg-amber-50 text-amber-700",
-    glow: "bg-amber-400/15",
+    glow: "text-amber-400",
     bar: "bg-amber-500",
   },
   rose: {
     icon: "bg-rose-50 text-rose-700",
-    glow: "bg-rose-400/15",
+    glow: "text-rose-400",
     bar: "bg-rose-500",
   },
   violet: {
     icon: "bg-violet-50 text-violet-700",
-    glow: "bg-violet-400/15",
+    glow: "text-violet-400",
     bar: "bg-violet-500",
   },
   sky: {
     icon: "bg-sky-50 text-sky-700",
-    glow: "bg-sky-400/15",
+    glow: "text-sky-400",
     bar: "bg-sky-500",
   },
   slate: {
     icon: "bg-slate-100 text-slate-700",
-    glow: "bg-slate-400/10",
+    glow: "text-slate-400",
     bar: "bg-slate-500",
   },
 } as const;
@@ -64,7 +64,7 @@ export function AnalysisMetric({
     <article className="lift-card group relative isolate min-h-36 overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-28px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.16)] ring-1 ring-slate-950/[0.025] sm:p-5">
       <span
         className={cn(
-          "absolute -right-12 -top-12 -z-10 size-32 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-125",
+          "absolute -right-16 -top-16 -z-10 size-40 bg-[radial-gradient(closest-side,currentColor,transparent)] opacity-[0.14] transition-transform duration-500 group-hover:scale-125",
           palette.glow,
         )}
         aria-hidden="true"

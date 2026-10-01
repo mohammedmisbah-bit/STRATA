@@ -12,6 +12,7 @@ import type { ReactNode } from "react";
 
 import { DashboardProvider } from "@/context/DashboardContext";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { useQuietViewTransitions } from "@/lib/view-transitions";
 
 import appCss from "../styles.css?url";
 
@@ -31,7 +32,7 @@ function StatePage({
   return (
     <main className="app-shell-bg relative grid min-h-screen place-items-center overflow-hidden px-4 py-12">
       <div
-        className="absolute left-1/2 top-0 h-96 w-[42rem] -translate-x-1/2 rounded-full bg-teal/15 blur-3xl"
+        className="glow-teal absolute left-1/2 -top-24 h-[36rem] w-[56rem] -translate-x-1/2"
         aria-hidden="true"
       />
       <section className="relative w-full max-w-lg overflow-hidden rounded-[2rem] border border-white/80 bg-card/95 p-6 text-center shadow-[0_32px_90px_-40px_rgba(15,23,42,0.65)] ring-1 ring-slate-950/[0.025] sm:p-9">
@@ -162,6 +163,7 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useQuietViewTransitions();
   return (
     <QueryClientProvider client={queryClient}>
       <LanguageProvider>

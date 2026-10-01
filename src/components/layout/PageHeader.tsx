@@ -19,12 +19,9 @@ export function PageHeader({
   return (
     <section className="page-hero relative isolate overflow-hidden rounded-[1.75rem] border border-white/10 bg-[#071b25] px-5 py-6 text-white shadow-[0_30px_80px_-36px_rgba(2,20,28,0.9)] sm:px-7 sm:py-8 lg:px-9">
       <div className="strata-contours absolute inset-0 -z-10 opacity-65" aria-hidden="true" />
+      <div className="glow-teal absolute -right-40 -top-48 -z-10 size-[30rem]" aria-hidden="true" />
       <div
-        className="absolute -right-24 -top-32 -z-10 size-80 rounded-full bg-teal-400/15 blur-3xl"
-        aria-hidden="true"
-      />
-      <div
-        className="absolute -bottom-24 left-1/3 -z-10 h-48 w-96 rounded-full bg-violet-500/10 blur-3xl"
+        className="glow-violet absolute -bottom-40 left-1/4 -z-10 h-80 w-[36rem]"
         aria-hidden="true"
       />
 

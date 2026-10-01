@@ -1,6 +1,8 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 
+import { pickViewTransitionTypes } from "@/lib/view-transitions";
+
 import { routeTree } from "./routeTree.gen";
 
 export const getRouter = () => {
@@ -14,12 +16,12 @@ export const getRouter = () => {
     defaultPreload: "intent",
     defaultPreloadDelay: 40,
     defaultPreloadStaleTime: 0,
-    // Chunks are also preloaded on idle (AppShell), so the skeleton should
-    // almost never appear. Only show it on a genuinely slow network.
+    // Chunks are also preloaded on idle (landing + AppShell), so the skeleton
+    // should almost never appear. Only show it on a genuinely slow network.
     defaultPendingMs: 700,
     defaultPendingMinMs: 300,
-    // Cross-fades route content with the View Transitions API where supported;
-    // other browsers switch instantly. Shell parts are pinned in styles.css.
-    defaultViewTransition: true,
+    // Typed View Transitions: CSS choreographs landing ↔ app and
+    // workspace ↔ workspace differently. See src/lib/view-transitions.ts.
+    defaultViewTransition: { types: pickViewTransitionTypes },
   });
 };

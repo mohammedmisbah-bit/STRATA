@@ -11,12 +11,15 @@ import {
 } from "recharts";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useAfterPaint } from "@/hooks/use-after-paint";
 import { useUiText } from "@/i18n/use-ui-text";
 import { formatScore } from "@/lib/format";
 
 export function ConfidenceView() {
   const { mine } = useDashboard();
   const t = useUiText();
+  // Charts mount one frame after the page so route transitions start instantly.
+  const chartReady = useAfterPaint();
 
   // Recharts needs the interval as a [lo, hi] tuple to render a banded Area.
   const data = useMemo(
@@ -38,7 +41,7 @@ export function ConfidenceView() {
       </div>
 
       <div className="min-h-0 flex-1 rounded-md border border-border bg-panel-grid p-2">
-        {data.length === 0 ? (
+        {!chartReady ? null : data.length === 0 ? (
           <div className="grid h-full place-items-center text-xs text-muted-foreground">
             {t("confidence.empty", { mine: mine.label })}
           </div>
@@ -78,6 +81,8 @@ export function ConfidenceView() {
                 fill="#CCFBF1"
                 fillOpacity={0.8}
                 name="95% CI"
+                animationDuration={800}
+                animationEasing="ease-out"
               />
               <Line
                 type="monotone"
@@ -86,6 +91,8 @@ export function ConfidenceView() {
                 strokeWidth={3}
                 dot={{ r: 4, fill: "#0F766E" }}
                 name="mean"
+                animationDuration={800}
+                animationEasing="ease-out"
               />
             </ComposedChart>
           </ResponsiveContainer>

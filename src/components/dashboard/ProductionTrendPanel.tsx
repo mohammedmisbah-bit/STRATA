@@ -13,6 +13,7 @@ import {
 } from "recharts";
 
 import { useDashboard } from "@/context/use-dashboard";
+import { useAfterPaint } from "@/hooks/use-after-paint";
 import { useUiText } from "@/i18n/use-ui-text";
 import { formatPercent, formatTonnes } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -48,6 +49,8 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
   }, [mine]);
 
   const hasData = mine.trend.length > 0;
+  // Charts mount one frame after the page so route transitions start instantly.
+  const chartReady = useAfterPaint();
 
   return (
     <Panel
@@ -76,7 +79,7 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
             expanded ? "h-[340px] sm:h-[400px]" : "h-[230px]",
           )}
         >
-          {hasData ? (
+          {!chartReady ? null : hasData ? (
             <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={160}>
               <ComposedChart data={mine.trend} margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
                 <CartesianGrid stroke="#E2E8F0" strokeDasharray="2 4" vertical={false} />
@@ -115,6 +118,8 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                   strokeWidth={2}
                   fill="#CCFBF1"
                   fillOpacity={0.7}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
                 <Line
                   type="monotone"
@@ -124,6 +129,8 @@ export function ProductionTrendPanel({ expanded = false }: { expanded?: boolean 
                   strokeWidth={2}
                   strokeDasharray="4 4"
                   dot={false}
+                  animationDuration={800}
+                  animationEasing="ease-out"
                 />
                 <ReferenceLine
                   y={scenario.projectedTonnes}

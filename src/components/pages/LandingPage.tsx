@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouter } from "@tanstack/react-router";
 import {
   ArrowRight,
   ArrowUp,
@@ -14,6 +14,7 @@ import {
   Workflow,
   type LucideIcon,
 } from "lucide-react";
+import { useEffect, type MouseEvent } from "react";
 
 import { LanguageSwitcher } from "@/components/dashboard/LanguageSwitcher";
 import { ProvenanceBadge, type Provenance } from "@/components/dashboard/ProvenanceBadge";
@@ -24,6 +25,7 @@ import { useUiText, type UiTranslate } from "@/i18n/use-ui-text";
 import { APP_NAVIGATION, type NavId } from "@/lib/app-navigation";
 import { formatPercent, formatTonnes } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { whenIdle } from "@/lib/view-transitions";
 
 const SECTIONS = [
   { id: "challenge", key: "landing.nav.challenge" },
@@ -55,6 +57,20 @@ const STEPS: ReadonlyArray<{ n: "1" | "2" | "3"; icon: LucideIcon }> = [
 ];
 
 const PROVENANCE: readonly Provenance[] = ["official", "modelled", "simulated", "synthetic"];
+
+/**
+ * Smooth-scrolls to a section and moves focus to it (for keyboard and screen
+ * reader users) without touching the URL, so the router never sees a
+ * navigation. Honours prefers-reduced-motion.
+ */
+function scrollToSection(event: MouseEvent<HTMLAnchorElement>, id: string) {
+  const target = document.getElementById(id);
+  if (target === null) return;
+  event.preventDefault();
+  const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  target.scrollIntoView({ behavior: reduce ? "auto" : "smooth", block: "start" });
+  target.focus({ preventScroll: true });
+}
 
 function StrataLogo() {
   return (
@@ -103,7 +119,7 @@ function SectionHeading({
   dark?: boolean;
 }) {
   return (
-    <div className="max-w-3xl">
+    <div className="landing-reveal max-w-3xl">
       <p
         className={cn(
           "font-mono text-[10px] font-bold uppercase tracking-[0.2em]",
@@ -141,10 +157,7 @@ function ScenarioPreview({ t }: { t: UiTranslate }) {
 
   return (
     <div className="landing-rise relative [--rise-delay:200ms]">
-      <div
-        className="absolute -inset-6 -z-10 rounded-[2.5rem] bg-teal-400/10 blur-3xl"
-        aria-hidden="true"
-      />
+      <div className="glow-teal absolute -inset-16 -z-10" aria-hidden="true" />
       <div className="rounded-[1.75rem] border border-white/10 bg-white/[0.06] p-5 shadow-[0_40px_90px_-40px_rgba(0,0,0,0.9),inset_0_1px_0_rgba(255,255,255,0.08)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <p className="font-mono text-[10px] font-semibold uppercase tracking-[0.18em] text-teal-200/80">
@@ -224,6 +237,17 @@ function ScenarioPreview({ t }: { t: UiTranslate }) {
 export function LandingPage() {
   const t = useUiText();
   const { mines } = useDashboard();
+  const router = useRouter();
+
+  // The transition freezes the old frame until the new route has rendered, so
+  // an un-fetched chunk would show up as a stall. Warm it while the user reads.
+  useEffect(
+    () =>
+      whenIdle(() => {
+        void router.preloadRoute({ to: "/dashboard" }).catch(() => undefined);
+      }),
+    [router],
+  );
   const workspaces = APP_NAVIGATION.filter(
     (item): item is (typeof APP_NAVIGATION)[number] & { id: ApproachId } => item.id !== "overview",
   );
@@ -256,6 +280,7 @@ export function LandingPage() {
               <a
                 key={section.id}
                 href={`#${section.id}`}
+                onClick={(event) => scrollToSection(event, section.id)}
                 className="rounded-lg px-3 py-2 text-[13px] font-semibold text-slate-300 transition-colors duration-200 hover:bg-white/6 hover:text-white focus-visible:ring-2 focus-visible:ring-teal-300 focus-visible:outline-none"
               >
                 {t(section.key)}
@@ -271,16 +296,16 @@ export function LandingPage() {
         </div>
       </header>
 
-      <main id="landing-main" className="[view-transition-name:strata-main]">
+      <main id="landing-main" tabIndex={-1} className="outline-none">
         {/* ---- Hero ------------------------------------------------------ */}
         <section className="relative isolate overflow-hidden bg-[#061620] text-white">
           <div className="strata-contours absolute inset-0 -z-10 opacity-70" aria-hidden="true" />
           <div
-            className="absolute -left-40 top-10 -z-10 size-[34rem] rounded-full bg-teal-500/12 blur-3xl"
+            className="glow-teal absolute -left-56 -top-20 -z-10 size-[48rem]"
             aria-hidden="true"
           />
           <div
-            className="absolute -right-32 bottom-0 -z-10 size-[28rem] rounded-full bg-violet-500/10 blur-3xl"
+            className="glow-violet absolute -bottom-40 -right-48 -z-10 size-[40rem]"
             aria-hidden="true"
           />
           <div className="mx-auto grid max-w-7xl items-center gap-12 px-4 py-16 sm:px-6 sm:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:gap-16 lg:px-8 lg:py-28">
@@ -299,6 +324,7 @@ export function LandingPage() {
                 <DashboardButton t={t} large />
                 <a
                   href="#challenge"
+                  onClick={(event) => scrollToSection(event, "challenge")}
                   className="inline-flex items-center gap-2 rounded-xl border border-white/15 bg-white/6 px-5 py-3 text-sm font-bold text-white transition-colors duration-200 hover:bg-white/12 focus-visible:ring-2 focus-visible:ring-white/50 focus-visible:outline-none"
                 >
                   {t("landing.hero.secondary")}
@@ -331,7 +357,7 @@ export function LandingPage() {
         </section>
 
         {/* ---- The challenge ------------------------------------------------ */}
-        <section id="challenge" className="scroll-mt-16 py-20 sm:py-28">
+        <section id="challenge" tabIndex={-1} className="scroll-mt-16 py-20 outline-none sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
               eyebrow={t("landing.challenge.eyebrow")}
@@ -342,26 +368,27 @@ export function LandingPage() {
               {CHALLENGES.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <article
-                    key={item.n}
-                    className="lift-card relative overflow-hidden rounded-2xl border border-white/80 bg-card p-6 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.55)] ring-1 ring-slate-950/[0.03]"
-                  >
-                    <span
-                      className={cn(
-                        "grid size-11 place-items-center rounded-2xl ring-1",
-                        item.tone,
-                      )}
-                    >
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <p className="mt-5 font-mono text-[10px] font-bold text-slate-400">0{item.n}</p>
-                    <h3 className="mt-1 font-display text-lg font-semibold leading-snug tracking-[-0.02em]">
-                      {t(`landing.challenge.${item.n}.title`)}
-                    </h3>
-                    <p className="mt-3 text-[13px] leading-6 text-muted-foreground">
-                      {t(`landing.challenge.${item.n}.desc`)}
-                    </p>
-                  </article>
+                  <div key={item.n} className="landing-reveal">
+                    <article className="lift-card relative h-full overflow-hidden rounded-2xl border border-white/80 bg-card p-6 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.55)] ring-1 ring-slate-950/[0.03]">
+                      <span
+                        className={cn(
+                          "grid size-11 place-items-center rounded-2xl ring-1",
+                          item.tone,
+                        )}
+                      >
+                        <Icon className="size-5" aria-hidden="true" />
+                      </span>
+                      <p className="mt-5 font-mono text-[10px] font-bold text-slate-400">
+                        0{item.n}
+                      </p>
+                      <h3 className="mt-1 font-display text-lg font-semibold leading-snug tracking-[-0.02em]">
+                        {t(`landing.challenge.${item.n}.title`)}
+                      </h3>
+                      <p className="mt-3 text-[13px] leading-6 text-muted-foreground">
+                        {t(`landing.challenge.${item.n}.desc`)}
+                      </p>
+                    </article>
+                  </div>
                 );
               })}
             </div>
@@ -371,7 +398,8 @@ export function LandingPage() {
         {/* ---- Our approach -------------------------------------------------- */}
         <section
           id="approach"
-          className="scroll-mt-16 border-y border-border/70 bg-white/70 py-20 sm:py-28"
+          tabIndex={-1}
+          className="scroll-mt-16 border-y outline-none border-border/70 bg-white/70 py-20 sm:py-28"
         >
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading
@@ -383,36 +411,37 @@ export function LandingPage() {
               {workspaces.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <Link
-                    key={item.id}
-                    to={item.path}
-                    className={cn(
-                      "lift-card group relative isolate flex gap-5 overflow-hidden rounded-2xl border border-white/80 bg-gradient-to-br to-white p-6 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.55)] ring-1 ring-slate-950/[0.03] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:p-7",
-                      APPROACH_TONE[item.id],
-                    )}
-                  >
-                    <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-current/10">
-                      <Icon className="size-5" aria-hidden="true" />
-                    </span>
-                    <span className="min-w-0">
-                      <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]">
-                        {t(`nav.${item.id}.label`)}
+                  <div key={item.id} className="landing-reveal">
+                    <Link
+                      to={item.path}
+                      className={cn(
+                        "lift-card group relative isolate flex h-full gap-5 overflow-hidden rounded-2xl border border-white/80 bg-gradient-to-br to-white p-6 shadow-[0_16px_45px_-32px_rgba(15,23,42,0.55)] ring-1 ring-slate-950/[0.03] focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none sm:p-7",
+                        APPROACH_TONE[item.id],
+                      )}
+                    >
+                      <span className="grid size-12 shrink-0 place-items-center rounded-2xl bg-current/10">
+                        <Icon className="size-5" aria-hidden="true" />
                       </span>
-                      <span className="mt-2 block font-display text-lg font-semibold leading-snug tracking-[-0.02em] text-foreground">
-                        {t(`landing.approach.${item.id}.q`)}
+                      <span className="min-w-0">
+                        <span className="font-mono text-[10px] font-bold uppercase tracking-[0.16em]">
+                          {t(`nav.${item.id}.label`)}
+                        </span>
+                        <span className="mt-2 block font-display text-lg font-semibold leading-snug tracking-[-0.02em] text-foreground">
+                          {t(`landing.approach.${item.id}.q`)}
+                        </span>
+                        <span className="mt-2 block text-[13px] leading-6 text-muted-foreground">
+                          {t(`landing.approach.${item.id}.a`)}
+                        </span>
+                        <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-extrabold">
+                          {t("overview.openWorkspace")}
+                          <ArrowRight
+                            className="size-3.5 transition-transform duration-300 group-hover:translate-x-1"
+                            aria-hidden="true"
+                          />
+                        </span>
                       </span>
-                      <span className="mt-2 block text-[13px] leading-6 text-muted-foreground">
-                        {t(`landing.approach.${item.id}.a`)}
-                      </span>
-                      <span className="mt-4 inline-flex items-center gap-1.5 text-[12px] font-extrabold">
-                        {t("overview.openWorkspace")}
-                        <ArrowRight
-                          className="size-3.5 transition-transform duration-300 group-hover:translate-x-1"
-                          aria-hidden="true"
-                        />
-                      </span>
-                    </span>
-                  </Link>
+                    </Link>
+                  </div>
                 );
               })}
             </div>
@@ -420,7 +449,7 @@ export function LandingPage() {
         </section>
 
         {/* ---- How it works -------------------------------------------------- */}
-        <section id="how" className="scroll-mt-16 py-20 sm:py-28">
+        <section id="how" tabIndex={-1} className="scroll-mt-16 py-20 outline-none sm:py-28">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <SectionHeading eyebrow={t("landing.how.eyebrow")} title={t("landing.how.title")} />
             <ol className="relative mt-12 grid gap-6 lg:grid-cols-3">
@@ -431,7 +460,7 @@ export function LandingPage() {
               {STEPS.map((step) => {
                 const Icon = step.icon;
                 return (
-                  <li key={step.n} className="relative">
+                  <li key={step.n} className="landing-reveal relative">
                     <span className="relative grid size-12 place-items-center rounded-2xl bg-[#0b3940] text-teal-200 shadow-[0_14px_30px_-14px_rgba(11,57,64,0.9)]">
                       <Icon className="size-5" aria-hidden="true" />
                     </span>
@@ -454,7 +483,8 @@ export function LandingPage() {
         {/* ---- Data trust ---------------------------------------------------- */}
         <section
           id="trust"
-          className="relative isolate scroll-mt-16 overflow-hidden bg-[#061620] py-20 text-white sm:py-28"
+          tabIndex={-1}
+          className="relative isolate scroll-mt-16 outline-none overflow-hidden bg-[#061620] py-20 text-white sm:py-28"
         >
           <div className="strata-contours absolute inset-0 -z-10 opacity-50" aria-hidden="true" />
           <div className="mx-auto grid max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[0.9fr_1.1fr] lg:px-8">
@@ -473,7 +503,7 @@ export function LandingPage() {
               {PROVENANCE.map((kind) => (
                 <li
                   key={kind}
-                  className="rounded-2xl border border-white/10 bg-white/[0.05] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
+                  className="landing-reveal rounded-2xl border border-white/10 bg-white/[0.05] p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)]"
                 >
                   <ProvenanceBadge kind={kind} />
                   <p className="mt-3 text-[13px] leading-6 text-slate-300">
@@ -502,13 +532,13 @@ export function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="relative isolate overflow-hidden rounded-[2rem] bg-[#0b3940] p-8 text-white shadow-[0_40px_90px_-40px_rgba(11,57,64,0.9)] sm:p-10">
+            <div className="landing-reveal relative isolate overflow-hidden rounded-[2rem] bg-[#0b3940] p-8 text-white shadow-[0_40px_90px_-40px_rgba(11,57,64,0.9)] sm:p-10">
               <div
                 className="strata-contours absolute inset-0 -z-10 opacity-60"
                 aria-hidden="true"
               />
               <div
-                className="absolute -right-16 -top-16 -z-10 size-64 rounded-full bg-teal-300/20 blur-3xl"
+                className="glow-teal absolute -right-32 -top-32 -z-10 size-96"
                 aria-hidden="true"
               />
               <h2 className="font-display text-[clamp(1.6rem,3vw,2.3rem)] font-semibold leading-tight tracking-[-0.035em]">
@@ -537,6 +567,7 @@ export function LandingPage() {
           </p>
           <a
             href="#landing-main"
+            onClick={(event) => scrollToSection(event, "landing-main")}
             className="inline-flex items-center gap-1 font-semibold text-teal hover:underline focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none"
           >
             <ArrowUp className="size-3.5" aria-hidden="true" />

@@ -50,15 +50,17 @@ export type FetchMinesResult = {
 
 /**
  * Hardcoded MOIL roster. The guaranteed floor for the UI, and the same values
- * written by `supabase/seed/mines.sql`.
+ * written by `supabase/migrations/0001_mines_real_data.sql`.
  *
  * Provenance per field:
  *  - depth, mine type, ore profile, operational note: approximate figures from
  *    MOIL SEBI / NSE corporate filings and IBM Indian Minerals Yearbook
  *    (manganese chapter). Depths are rounded ("~") and move as development
  *    advances — re-check against the latest annual report before quoting.
- *  - coordinates: approximate mine centroids, good for map placement and
- *    Open-Meteo lookups, not for survey work.
+ *  - coordinates: Balaghat (Bharveli) and Chikla are taken from mapped
+ *    OpenStreetMap features operated by MOIL; Dongri Buzurg, Kandri and Ukwa
+ *    are approximate centroids. Good for map placement and Open-Meteo lookups,
+ *    not for survey work.
  *  - monthly targets: still placeholders. MOIL publishes company-wide monthly
  *    production, not per-mine targets.
  */
@@ -70,8 +72,8 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     state: "Madhya Pradesh",
     mineType: "underground",
     depthMeters: 385,
-    latitude: 21.8083,
-    longitude: 80.1833,
+    latitude: 21.8502,
+    longitude: 80.2274,
     monthlyTargetTonnes: 25000,
     oreProfile: "High-grade Mn > 44%",
     officialSource: MOIL_OFFICIAL_SOURCE,
@@ -84,8 +86,8 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     state: "Maharashtra",
     mineType: "opencast",
     depthMeters: 120,
-    latitude: 21.3833,
-    longitude: 79.6167,
+    latitude: 21.5583,
+    longitude: 79.7167,
     monthlyTargetTonnes: 18000,
     oreProfile: "Manganese dioxide (MnO₂) ore",
     officialSource: MOIL_OFFICIAL_SOURCE,
@@ -98,8 +100,8 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     state: "Maharashtra",
     mineType: "underground",
     depthMeters: 180,
-    latitude: 21.25,
-    longitude: 79.65,
+    latitude: 21.5385,
+    longitude: 79.7523,
     monthlyTargetTonnes: 9500,
     oreProfile: "Manganese ore (Sausar Group)",
     officialSource: MOIL_OFFICIAL_SOURCE,
@@ -112,8 +114,8 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     state: "Maharashtra",
     mineType: "underground",
     depthMeters: 160,
-    latitude: 21.3167,
-    longitude: 79.15,
+    latitude: 21.3667,
+    longitude: 79.2667,
     monthlyTargetTonnes: 6800,
     oreProfile: "Manganese ore (Sausar Group)",
     officialSource: MOIL_OFFICIAL_SOURCE,
@@ -126,8 +128,8 @@ export const FALLBACK_MINES: readonly MineRecord[] = [
     state: "Madhya Pradesh",
     mineType: "underground",
     depthMeters: 150,
-    latitude: 21.9333,
-    longitude: 80.4167,
+    latitude: 21.9667,
+    longitude: 80.4667,
     monthlyTargetTonnes: 7200,
     oreProfile: "Manganese ore (Sausar Group)",
     officialSource: MOIL_OFFICIAL_SOURCE,

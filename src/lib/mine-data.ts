@@ -659,6 +659,22 @@ export function composeMineProfile(override: MineOverride): MineProfile {
   const trend =
     base === null ? [] : base.trend.map((point) => ({ ...point, target: monthlyTargetTonnes }));
 
+  // Beacons are authored relative to the local profile's anchor. When the
+  // database places the mine elsewhere, move them with it so they stay on site
+  // instead of being stranded kilometres away.
+  const dLat = base === null ? 0 : override.latitude - base.coordinates.lat;
+  const dLon = base === null ? 0 : override.longitude - base.coordinates.lon;
+  const mapBeacons =
+    base === null
+      ? null
+      : base.mapBeacons.map((beacon) => ({
+          ...beacon,
+          coordinates: {
+            lat: beacon.coordinates.lat + dLat,
+            lon: beacon.coordinates.lon + dLon,
+          },
+        }));
+
   return {
     id: override.id,
     label: override.name,
@@ -679,7 +695,7 @@ export function composeMineProfile(override: MineOverride): MineProfile {
     riskAlerts: base?.riskAlerts ?? [],
     confidenceBands: base?.confidenceBands ?? [],
     spectralLayers: base?.spectralLayers ?? [],
-    mapBeacons: base?.mapBeacons ?? [
+    mapBeacons: mapBeacons ?? [
       {
         id: `${override.id}-beacon`,
         tone: "emerald",

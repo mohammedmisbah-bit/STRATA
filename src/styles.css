@@ -222,13 +222,16 @@
     transform: scale(1.008);
   }
 }
+/* Opacity only, so the compositor runs it. Animating background-color here
+   repainted the card into the page layer every frame and starved the GPU
+   (idle dashboard dropped to 0 fps and route transitions timed out). */
 @keyframes soft-glow {
   0%,
   100% {
-    background-color: #ffe4e6;
+    opacity: 0;
   }
   50% {
-    background-color: #fecdd3;
+    opacity: 1;
   }
 }
 @utility animate-radar {
@@ -333,21 +336,41 @@
   contain: strict;
 }
 
-/* Route cross-fade (View Transitions API). Shell chrome is pinned so only the
-   page content moves. Browsers without support simply switch instantly. */
-::view-transition-old(root),
+/*
+ * Route transitions (View Transitions API).
+ *
+ * The router tags every navigation with a type (src/lib/view-transitions.ts):
+ *   strata-workspace  — workspace ↔ workspace: shell pinned, content cross-fades
+ *   strata-enter-app  — landing → app: landing recedes, shell and page arrive in sequence
+ *   strata-exit-app   — app → landing: shell leaves, landing rises in
+ *
+ * Only snapshots animate, and only opacity/transform, so every frame runs on
+ * the compositor regardless of how heavy the incoming page is to render.
+ * Browsers without typed transitions use the untyped rules below; browsers
+ * without the API switch instantly.
+ */
+:root {
+  --vt-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --vt-ease-in: cubic-bezier(0.5, 0, 0.75, 0);
+}
+
+/*
+ * Page content animates through the ROOT snapshot, which is always one viewport
+ * in size. Naming the whole <main> element instead made the browser rasterise
+ * the entire page (thousands of pixels tall) on every navigation, which was
+ * the main source of stutter on long pages like Production.
+ */
+
+/* ---- Untyped baseline (browsers without transition types) --------------- */
+::view-transition-old(root) {
+  animation: vt-fade-out 180ms var(--vt-ease-in) both;
+}
+
 ::view-transition-new(root) {
-  animation: none;
+  animation: vt-fade-in 300ms var(--vt-ease-out) both;
 }
 
-::view-transition-old(strata-main) {
-  animation: strata-vt-out 160ms cubic-bezier(0.4, 0, 1, 1) both;
-}
-
-::view-transition-new(strata-main) {
-  animation: strata-vt-in 320ms cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
+/* Shell chrome stays put unless a typed rule below moves it. */
 ::view-transition-old(strata-header),
 ::view-transition-new(strata-header),
 ::view-transition-old(strata-sidebar),
@@ -355,21 +378,108 @@
   animation: none;
 }
 
-::view-transition-group(strata-main) {
-  animation-duration: 320ms;
+/* ---- Workspace ↔ workspace: shell pinned, content cross-fades ------------ */
+html:active-view-transition-type(strata-workspace)::view-transition-old(root) {
+  animation: vt-fade-out 160ms var(--vt-ease-in) both;
 }
 
-@keyframes strata-vt-out {
-  to {
+html:active-view-transition-type(strata-workspace)::view-transition-new(root) {
+  animation: vt-rise-in 360ms var(--vt-ease-out) 40ms both;
+}
+
+/* ---- Landing → app ------------------------------------------------------ */
+html:active-view-transition-type(strata-enter-app)::view-transition-old(root) {
+  animation: vt-recede 320ms var(--vt-ease-in) both;
+}
+
+html:active-view-transition-type(strata-enter-app)::view-transition-new(root) {
+  animation: vt-rise-in-far 640ms var(--vt-ease-out) 200ms both;
+}
+
+html:active-view-transition-type(strata-enter-app)::view-transition-new(strata-sidebar) {
+  animation: vt-slide-in-left 600ms var(--vt-ease-out) 100ms both;
+}
+
+html:active-view-transition-type(strata-enter-app)::view-transition-new(strata-header) {
+  animation: vt-drop-in 520ms var(--vt-ease-out) 160ms both;
+}
+
+/* ---- App → landing ------------------------------------------------------ */
+html:active-view-transition-type(strata-exit-app)::view-transition-old(strata-sidebar) {
+  animation: vt-slide-out-left 300ms var(--vt-ease-in) both;
+}
+
+html:active-view-transition-type(strata-exit-app)::view-transition-old(strata-header) {
+  animation: vt-lift-out 260ms var(--vt-ease-in) both;
+}
+
+html:active-view-transition-type(strata-exit-app)::view-transition-old(root) {
+  animation: vt-recede 280ms var(--vt-ease-in) both;
+}
+
+html:active-view-transition-type(strata-exit-app)::view-transition-new(root) {
+  animation: vt-rise-in-far 600ms var(--vt-ease-out) 140ms both;
+}
+
+/* ---- Keyframes (opacity + transform only) ------------------------------- */
+@keyframes vt-fade-in {
+  from {
     opacity: 0;
-    transform: translateY(-4px);
   }
 }
 
-@keyframes strata-vt-in {
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-rise-in {
   from {
     opacity: 0;
-    transform: translateY(10px);
+    transform: translate3d(0, 12px, 0);
+  }
+}
+
+@keyframes vt-rise-in-far {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0) scale(0.985);
+  }
+}
+
+@keyframes vt-recede {
+  to {
+    opacity: 0;
+    transform: scale(0.975);
+  }
+}
+
+@keyframes vt-slide-in-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-40px, 0, 0);
+  }
+}
+
+@keyframes vt-slide-out-left {
+  to {
+    opacity: 0;
+    transform: translate3d(-40px, 0, 0);
+  }
+}
+
+@keyframes vt-drop-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
+  }
+}
+
+@keyframes vt-lift-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0);
   }
 }
 
@@ -476,11 +586,39 @@
 
 /* Landing page ------------------------------------------------------------ */
 
-/* Smooth in-page anchor scrolling only on the landing page. The dashboard keeps
-   instant scroll so route changes never animate a scroll reset. The global
-   reduced-motion rule (html matches `*`, with !important) still wins. */
-html:has(.strata-landing) {
-  scroll-behavior: smooth;
+/* Section links scroll smoothly via JS (LandingPage `scrollToSection`), not a
+   global `scroll-behavior: smooth`: that would also animate the router's
+   scroll reset when returning from the dashboard and fight the transition. */
+
+/* Soft ambient glows as radial gradients. A blurred element (`blur-3xl`) has
+   to be re-rasterised through a filter; a gradient is painted once. */
+@utility glow-teal {
+  background: radial-gradient(closest-side, oklch(0.78 0.12 180 / 0.2), transparent);
+}
+
+@utility glow-violet {
+  background: radial-gradient(closest-side, oklch(0.62 0.18 295 / 0.16), transparent);
+}
+
+/* Scroll-linked reveal. Runs on the compositor through a scroll timeline, so
+   there is no JS and no scroll listener. Content is fully visible by default:
+   the effect only applies where scroll timelines are supported and the user
+   hasn't asked for reduced motion. */
+@keyframes landing-reveal {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 32px, 0);
+  }
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .landing-reveal {
+      animation: landing-reveal linear both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 90%;
+    }
+  }
 }
 
 /* Hero entrance: opacity + transform only, staggered with --rise-delay. */

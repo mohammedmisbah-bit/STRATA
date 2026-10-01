@@ -10,19 +10,19 @@ const TONES: Record<KpiTone, { icon: string; value: string; glow: string; accent
   plain: {
     icon: "bg-slate-100 text-slate-700",
     value: "text-foreground",
-    glow: "bg-slate-300/10",
+    glow: "text-slate-400",
     accent: "from-slate-400/50",
   },
   teal: {
     icon: "bg-teal-soft text-teal",
     value: "text-foreground",
-    glow: "bg-teal/15",
+    glow: "text-teal",
     accent: "from-teal/70",
   },
   coral: {
     icon: "bg-rose-50 text-coral",
     value: "text-coral",
-    glow: "bg-coral/12",
+    glow: "text-coral",
     accent: "from-coral/70",
   },
 };
@@ -52,13 +52,20 @@ export function Kpi({
   return (
     <article
       className={cn(
-        "lift-card group relative isolate min-h-[9.25rem] overflow-hidden rounded-2xl border border-white/80 bg-card/95 p-4 shadow-[0_14px_42px_-30px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.14)] ring-1 ring-slate-950/[0.025]",
-        pulse && "animate-soft-glow",
+        "lift-card group relative isolate min-h-[9.25rem] overflow-hidden rounded-2xl border border-white/80 p-4 shadow-[0_14px_42px_-30px_rgba(15,23,42,0.55),0_2px_8px_-4px_rgba(15,23,42,0.14)] ring-1 ring-slate-950/[0.025]",
+        pulse ? "bg-rose-100" : "bg-card/95",
       )}
     >
+      {pulse ? (
+        // Alert pulse: a tinted layer fading in and out (compositor-only).
+        <span
+          className="animate-soft-glow pointer-events-none absolute inset-0 -z-10 bg-rose-200"
+          aria-hidden="true"
+        />
+      ) : null}
       <span
         className={cn(
-          "absolute -right-10 -top-12 -z-10 size-32 rounded-full blur-2xl transition-transform duration-500 group-hover:scale-125",
+          "absolute -right-14 -top-16 -z-10 size-40 bg-[radial-gradient(closest-side,currentColor,transparent)] opacity-[0.14] transition-transform duration-500 group-hover:scale-125",
           palette.glow,
         )}
         aria-hidden="true"
