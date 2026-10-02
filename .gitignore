@@ -39,3 +39,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Satellite pipeline: local venv and raw raster cache
+pipeline/.venv/
+pipeline/cache/
+__pycache__/

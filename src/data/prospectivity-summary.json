@@ -1,0 +1,650 @@
+{
+ "generatedAt": "2026-10-02T06:48:11+00:00",
+ "sources": {
+  "imagery": "Sentinel-2 L2A (ESA Copernicus) via Copernicus Data Space Ecosystem",
+  "imageryWindow": [
+   "2026-01-15",
+   "2026-04-30"
+  ],
+  "composite": "Per-pixel median of SCL-cloud-masked observations",
+  "medianClearObservations": 20,
+  "dem": "Copernicus DEM GLO-90",
+  "labels": [
+   {
+    "id": "balaghat",
+    "label": "Balaghat",
+    "source": "OpenStreetMap (MOIL-operated quarry)"
+   },
+   {
+    "id": "dongri-buzurg",
+    "label": "Dongri Buzurg",
+    "source": "Approximate centroid"
+   },
+   {
+    "id": "chikla",
+    "label": "Chikla",
+    "source": "OpenStreetMap (MOIL Chikala Mines)"
+   },
+   {
+    "id": "kandri",
+    "label": "Kandri",
+    "source": "Approximate centroid"
+   },
+   {
+    "id": "ukwa",
+    "label": "Ukwa",
+    "source": "Approximate centroid"
+   },
+   {
+    "id": "tirodi",
+    "label": "Tirodi",
+    "source": "OpenStreetMap (Tirodi Mine)"
+   }
+  ]
+ },
+ "grid": {
+  "bbox": [
+   79.15,
+   21.25,
+   80.55,
+   22.05
+  ],
+  "width": 1450,
+  "height": 890,
+  "cellMeters": 100,
+  "validCells": 1223050
+ },
+ "heatmap": {
+  "url": "/prospectivity/heatmap.png",
+  "coordinates": [
+   [
+    79.15,
+    22.05
+   ],
+   [
+    80.55,
+    22.05
+   ],
+   [
+    80.55,
+    21.25
+   ],
+   [
+    79.15,
+    21.25
+   ]
+  ],
+  "threshold": 0.35
+ },
+ "model": {
+  "type": "Presence-background Random Forest (positive-unlabelled)",
+  "trees": 120,
+  "bootstrap": 30,
+  "bootstrapUnit": "mine (block bootstrap)",
+  "interval": "95% bootstrap interval",
+  "positiveRingMeters": [
+   400,
+   1500
+  ],
+  "backgroundCells": 30000
+ },
+ "features": [
+  {
+   "id": "relief",
+   "label": "Local relief (1 km)",
+   "importance": 0.201
+  },
+  {
+   "id": "tpi_5km",
+   "label": "Ridge position (5 km)",
+   "importance": 0.171
+  },
+  {
+   "id": "clay_ctx",
+   "label": "Clay, 500 m context",
+   "importance": 0.139
+  },
+  {
+   "id": "ferric_ctx",
+   "label": "Ferric iron, 500 m context",
+   "importance": 0.132
+  },
+  {
+   "id": "albedo",
+   "label": "Surface albedo",
+   "importance": 0.064
+  },
+  {
+   "id": "slope",
+   "label": "Slope",
+   "importance": 0.059
+  },
+  {
+   "id": "ferric",
+   "label": "Ferric iron (B4/B2)",
+   "importance": 0.057
+  },
+  {
+   "id": "clay",
+   "label": "Clay / hydroxyl (B11/B12)",
+   "importance": 0.051
+  },
+  {
+   "id": "tpi",
+   "label": "Topographic position (1 km)",
+   "importance": 0.048
+  },
+  {
+   "id": "ferrous",
+   "label": "Ferrous iron (B11/B8)",
+   "importance": 0.043
+  },
+  {
+   "id": "ndvi",
+   "label": "Vegetation (NDVI)",
+   "importance": 0.035
+  }
+ ],
+ "validation": {
+  "method": "Spatially grouped leave-one-mine-out (mines within 10 km held out together)",
+  "mines": [
+   {
+    "id": "balaghat",
+    "label": "Balaghat",
+    "auc": 0.666,
+    "baselineAuc": 0.359,
+    "topPercent": 27.1,
+    "heldOutWith": []
+   },
+   {
+    "id": "dongri-buzurg",
+    "label": "Dongri Buzurg",
+    "auc": 0.552,
+    "baselineAuc": 0.74,
+    "topPercent": 40.0,
+    "heldOutWith": [
+     "chikla"
+    ]
+   },
+   {
+    "id": "chikla",
+    "label": "Chikla",
+    "auc": 0.759,
+    "baselineAuc": 0.623,
+    "topPercent": 8.1,
+    "heldOutWith": [
+     "dongri-buzurg"
+    ]
+   },
+   {
+    "id": "kandri",
+    "label": "Kandri",
+    "auc": 0.304,
+    "baselineAuc": 0.253,
+    "topPercent": 71.7,
+    "heldOutWith": []
+   },
+   {
+    "id": "ukwa",
+    "label": "Ukwa",
+    "auc": 0.884,
+    "baselineAuc": 0.424,
+    "topPercent": 5.3,
+    "heldOutWith": []
+   },
+   {
+    "id": "tirodi",
+    "label": "Tirodi",
+    "auc": 0.874,
+    "baselineAuc": 0.498,
+    "topPercent": 2.6,
+    "heldOutWith": []
+   }
+  ],
+  "meanAuc": 0.673,
+  "baselineMeanAuc": 0.483,
+  "baselineDescription": "Equal-weight z-score of ferric, ferrous, clay and relief"
+ },
+ "mines": {
+  "balaghat": {
+   "label": "Balaghat",
+   "coordinateSource": "OpenStreetMap (MOIL-operated quarry)",
+   "score": 0.623,
+   "lo": 0.154,
+   "hi": 0.959,
+   "beltPercentile": 98.7,
+   "ferric": 1.502,
+   "ferrous": 1.034,
+   "clay": 1.433,
+   "ndvi": 0.369,
+   "slope": 3.3,
+   "relief": 14.5,
+   "elevation": 320.0,
+   "beltFerricPercentile": 22.0,
+   "beltClayPercentile": 37.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.65,
+     "lo": 0.224,
+     "hi": 0.895
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.541,
+     "lo": 0.147,
+     "hi": 0.822
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.401,
+     "lo": 0.087,
+     "hi": 0.672
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.319,
+     "lo": 0.063,
+     "hi": 0.569
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.222,
+     "lo": 0.04,
+     "hi": 0.419
+    }
+   ]
+  },
+  "dongri-buzurg": {
+   "label": "Dongri Buzurg",
+   "coordinateSource": "Approximate centroid",
+   "score": 0.693,
+   "lo": 0.12,
+   "hi": 0.927,
+   "beltPercentile": 99.2,
+   "ferric": 1.675,
+   "ferrous": 1.266,
+   "clay": 1.559,
+   "ndvi": 0.412,
+   "slope": 3.8,
+   "relief": 12.8,
+   "elevation": 352.0,
+   "beltFerricPercentile": 52.0,
+   "beltClayPercentile": 66.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.814,
+     "lo": 0.451,
+     "hi": 0.948
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.744,
+     "lo": 0.311,
+     "hi": 0.927
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.638,
+     "lo": 0.203,
+     "hi": 0.868
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.555,
+     "lo": 0.153,
+     "hi": 0.803
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.432,
+     "lo": 0.104,
+     "hi": 0.681
+    }
+   ]
+  },
+  "chikla": {
+   "label": "Chikla",
+   "coordinateSource": "OpenStreetMap (MOIL Chikala Mines)",
+   "score": 0.7,
+   "lo": 0.213,
+   "hi": 0.925,
+   "beltPercentile": 99.3,
+   "ferric": 1.627,
+   "ferrous": 1.226,
+   "clay": 1.47,
+   "ndvi": 0.391,
+   "slope": 4.2,
+   "relief": 15.5,
+   "elevation": 339.0,
+   "beltFerricPercentile": 43.0,
+   "beltClayPercentile": 47.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.82,
+     "lo": 0.468,
+     "hi": 0.95
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.752,
+     "lo": 0.327,
+     "hi": 0.929
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.643,
+     "lo": 0.212,
+     "hi": 0.87
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.555,
+     "lo": 0.158,
+     "hi": 0.803
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.428,
+     "lo": 0.106,
+     "hi": 0.676
+    }
+   ]
+  },
+  "kandri": {
+   "label": "Kandri",
+   "coordinateSource": "Approximate centroid",
+   "score": 0.501,
+   "lo": 0.0,
+   "hi": 0.882,
+   "beltPercentile": 97.2,
+   "ferric": 1.601,
+   "ferrous": 0.992,
+   "clay": 1.467,
+   "ndvi": 0.416,
+   "slope": 0.6,
+   "relief": 2.2,
+   "elevation": 307.0,
+   "beltFerricPercentile": 38.0,
+   "beltClayPercentile": 46.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.772,
+     "lo": 0.432,
+     "hi": 0.924
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.668,
+     "lo": 0.261,
+     "hi": 0.899
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.556,
+     "lo": 0.148,
+     "hi": 0.846
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.48,
+     "lo": 0.106,
+     "hi": 0.779
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.372,
+     "lo": 0.068,
+     "hi": 0.65
+    }
+   ]
+  },
+  "ukwa": {
+   "label": "Ukwa",
+   "coordinateSource": "Approximate centroid",
+   "score": 0.742,
+   "lo": 0.232,
+   "hi": 0.955,
+   "beltPercentile": 99.5,
+   "ferric": 1.685,
+   "ferrous": 1.263,
+   "clay": 1.34,
+   "ndvi": 0.31,
+   "slope": 1.7,
+   "relief": 6.9,
+   "elevation": 622.0,
+   "beltFerricPercentile": 54.0,
+   "beltClayPercentile": 12.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.757,
+     "lo": 0.324,
+     "hi": 0.934
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.664,
+     "lo": 0.228,
+     "hi": 0.886
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.53,
+     "lo": 0.142,
+     "hi": 0.784
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.439,
+     "lo": 0.105,
+     "hi": 0.697
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.318,
+     "lo": 0.068,
+     "hi": 0.544
+    }
+   ]
+  },
+  "tirodi": {
+   "label": "Tirodi",
+   "coordinateSource": "OpenStreetMap (Tirodi Mine)",
+   "score": 0.721,
+   "lo": 0.34,
+   "hi": 0.938,
+   "beltPercentile": 99.4,
+   "ferric": 1.64,
+   "ferrous": 1.354,
+   "clay": 1.344,
+   "ndvi": 0.297,
+   "slope": 2.4,
+   "relief": 8.4,
+   "elevation": 332.0,
+   "beltFerricPercentile": 45.0,
+   "beltClayPercentile": 13.0,
+   "confidenceBands": [
+    {
+     "band": "Top 5%",
+     "mean": 0.713,
+     "lo": 0.339,
+     "hi": 0.907
+    },
+    {
+     "band": "Top 10%",
+     "mean": 0.586,
+     "lo": 0.209,
+     "hi": 0.832
+    },
+    {
+     "band": "Top 20%",
+     "mean": 0.444,
+     "lo": 0.123,
+     "hi": 0.709
+    },
+    {
+     "band": "Top 30%",
+     "mean": 0.361,
+     "lo": 0.088,
+     "hi": 0.618
+    },
+    {
+     "band": "Top 50%",
+     "mean": 0.258,
+     "lo": 0.056,
+     "hi": 0.477
+    }
+   ]
+  }
+ },
+ "targets": [
+  {
+   "lat": 21.40324,
+   "lon": 79.27343,
+   "score": 0.82,
+   "peak": 0.958,
+   "lo": 0.521,
+   "hi": 0.942,
+   "areaKm2": 5.33,
+   "nearestMine": "kandri",
+   "nearestMineKm": 4.1,
+   "id": "T01"
+  },
+  {
+   "lat": 21.60335,
+   "lon": 79.79019,
+   "score": 0.79,
+   "peak": 0.92,
+   "lo": 0.445,
+   "hi": 0.93,
+   "areaKm2": 3.61,
+   "nearestMine": "chikla",
+   "nearestMineKm": 8.2,
+   "id": "T02"
+  },
+  {
+   "lat": 21.97998,
+   "lon": 80.39247,
+   "score": 0.751,
+   "peak": 0.905,
+   "lo": 0.392,
+   "hi": 0.912,
+   "areaKm2": 3.6,
+   "nearestMine": "ukwa",
+   "nearestMineKm": 7.8,
+   "id": "T03"
+  },
+  {
+   "lat": 21.54492,
+   "lon": 79.68101,
+   "score": 0.807,
+   "peak": 0.941,
+   "lo": 0.531,
+   "hi": 0.94,
+   "areaKm2": 2.99,
+   "nearestMine": "dongri-buzurg",
+   "nearestMineKm": 4.0,
+   "id": "T04"
+  },
+  {
+   "lat": 21.86172,
+   "lon": 80.35441,
+   "score": 0.778,
+   "peak": 0.911,
+   "lo": 0.493,
+   "hi": 0.918,
+   "areaKm2": 2.53,
+   "nearestMine": "balaghat",
+   "nearestMineKm": 13.2,
+   "id": "T05"
+  },
+  {
+   "lat": 21.4225,
+   "lon": 79.22375,
+   "score": 0.773,
+   "peak": 0.898,
+   "lo": 0.44,
+   "hi": 0.92,
+   "areaKm2": 2.37,
+   "nearestMine": "kandri",
+   "nearestMineKm": 7.6,
+   "id": "T06"
+  },
+  {
+   "lat": 21.67555,
+   "lon": 79.67463,
+   "score": 0.826,
+   "peak": 0.946,
+   "lo": 0.588,
+   "hi": 0.936,
+   "areaKm2": 1.84,
+   "nearestMine": "tirodi",
+   "nearestMineKm": 5.2,
+   "id": "T07"
+  },
+  {
+   "lat": 21.42085,
+   "lon": 79.24781,
+   "score": 0.761,
+   "peak": 0.896,
+   "lo": 0.439,
+   "hi": 0.914,
+   "areaKm2": 1.96,
+   "nearestMine": "kandri",
+   "nearestMineKm": 6.3,
+   "id": "T08"
+  },
+  {
+   "lat": 21.35213,
+   "lon": 80.38552,
+   "score": 0.802,
+   "peak": 0.941,
+   "lo": 0.543,
+   "hi": 0.925,
+   "areaKm2": 1.69,
+   "nearestMine": "balaghat",
+   "nearestMineKm": 57.4,
+   "id": "T09"
+  },
+  {
+   "lat": 21.39973,
+   "lon": 79.32465,
+   "score": 0.791,
+   "peak": 0.947,
+   "lo": 0.421,
+   "hi": 0.947,
+   "areaKm2": 1.69,
+   "nearestMine": "kandri",
+   "nearestMineKm": 7.0,
+   "id": "T10"
+  },
+  {
+   "lat": 21.57954,
+   "lon": 79.78872,
+   "score": 0.787,
+   "peak": 0.937,
+   "lo": 0.409,
+   "hi": 0.931,
+   "areaKm2": 1.65,
+   "nearestMine": "chikla",
+   "nearestMineKm": 5.9,
+   "id": "T11"
+  },
+  {
+   "lat": 21.45908,
+   "lon": 80.13052,
+   "score": 0.774,
+   "peak": 0.932,
+   "lo": 0.499,
+   "hi": 0.913,
+   "areaKm2": 1.37,
+   "nearestMine": "chikla",
+   "nearestMineKm": 40.1,
+   "id": "T12"
+  }
+ ]
+}

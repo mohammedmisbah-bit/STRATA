@@ -1,11 +1,14 @@
 import { Activity, Boxes, Layers3, MapPinned, ScanSearch, Sparkles } from "lucide-react";
 
 import { MineGroundTruthPanel } from "@/components/dashboard/MineGroundTruthPanel";
+import { ModelValidationPanel } from "@/components/dashboard/ModelValidationPanel";
 import { Panel } from "@/components/dashboard/Panel";
 import { ProspectivityExplorer } from "@/components/dashboard/ProspectivityExplorer";
+import { ProspectTargetsPanel } from "@/components/dashboard/ProspectTargetsPanel";
 import { AnalysisMetric } from "@/components/layout/AnalysisMetric";
 import { HeroBadge, PageHeader } from "@/components/layout/PageHeader";
 import { useDashboard } from "@/context/use-dashboard";
+import { imageryWindowLabel, PROSPECTIVITY } from "@/data/prospectivity";
 import { useUiText } from "@/i18n/use-ui-text";
 import { formatScore } from "@/lib/format";
 
@@ -19,6 +22,8 @@ export function ProspectivityPage() {
   const { mine } = useDashboard();
   const t = useUiText();
   const confidence = Math.max(0, (1 - mine.prospectivityVariance) * 100);
+  const satellite = mine.prospectivitySource === "satellite";
+  const interval = mine.prospectivityInterval;
 
   return (
     <div className="space-y-5 sm:space-y-6">
@@ -34,6 +39,11 @@ export function ProspectivityPage() {
             </HeroBadge>
             <HeroBadge>{t("pros.grid", { grid: mine.gridResolution })}</HeroBadge>
             <HeroBadge>{mine.beltName}</HeroBadge>
+            {satellite ? (
+              <HeroBadge tone="teal">
+                {t("pros.satelliteBadge", { window: imageryWindowLabel() })}
+              </HeroBadge>
+            ) : null}
             <HeroBadge tone="amber">{t("pros.overlaySimulated")}</HeroBadge>
           </>
         }
@@ -42,7 +52,7 @@ export function ProspectivityPage() {
       <section aria-label={t("pros.m.score")} className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         <AnalysisMetric
           label={t("pros.m.score")}
-          provenance="simulated"
+          provenance={satellite ? "satellite" : "simulated"}
           value={formatScore(mine.prospectivityScore)}
           description={t("pros.m.scoreDesc")}
           icon={ScanSearch}
@@ -51,34 +61,56 @@ export function ProspectivityPage() {
         />
         <AnalysisMetric
           label={t("pros.m.confidence")}
-          provenance="modelled"
+          provenance={satellite ? "satellite" : "modelled"}
           value={`${confidence.toFixed(0)}%`}
-          description={t("pros.m.confidenceDesc", {
-            variance: formatScore(mine.prospectivityVariance),
-          })}
+          description={
+            interval === null
+              ? t("pros.m.confidenceDesc", { variance: formatScore(mine.prospectivityVariance) })
+              : t("pros.m.intervalDesc", {
+                  lo: formatScore(interval.lo),
+                  hi: formatScore(interval.hi),
+                  runs: PROSPECTIVITY.model.bootstrap,
+                })
+          }
           icon={Activity}
           tone="violet"
           progress={confidence}
         />
         <AnalysisMetric
           label={t("pros.m.spectral")}
-          provenance="simulated"
+          provenance={satellite ? "satellite" : "simulated"}
           value={String(mine.spectralLayers.length)}
           description={t("pros.m.spectralDesc")}
           icon={Layers3}
           tone="amber"
         />
-        <AnalysisMetric
-          label={t("pros.m.beacons")}
-          provenance="simulated"
-          value={String(mine.mapBeacons.length)}
-          description={t("pros.m.beaconsDesc")}
-          icon={Sparkles}
-          tone="sky"
-        />
+        {satellite ? (
+          <AnalysisMetric
+            label={t("pros.m.targets")}
+            provenance="satellite"
+            value={String(PROSPECTIVITY.targets.length)}
+            description={t("pros.m.targetsDesc")}
+            icon={Sparkles}
+            tone="sky"
+          />
+        ) : (
+          <AnalysisMetric
+            label={t("pros.m.beacons")}
+            provenance="simulated"
+            value={String(mine.mapBeacons.length)}
+            description={t("pros.m.beaconsDesc")}
+            icon={Sparkles}
+            tone="sky"
+          />
+        )}
       </section>
 
       <ProspectivityExplorer expanded />
+
+      <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
+        <ModelValidationPanel />
+        <ProspectTargetsPanel />
+      </section>
 
       <section className="grid gap-4 xl:grid-cols-[0.78fr_1.22fr]">
         <Panel title={t("pros.guide.title")} provenance={null} description={t("pros.guide.desc")}>

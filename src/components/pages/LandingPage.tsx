@@ -56,7 +56,13 @@ const STEPS: ReadonlyArray<{ n: "1" | "2" | "3"; icon: LucideIcon }> = [
   { n: "3", icon: Rocket },
 ];
 
-const PROVENANCE: readonly Provenance[] = ["official", "modelled", "simulated", "synthetic"];
+const PROVENANCE: readonly Provenance[] = [
+  "official",
+  "satellite",
+  "modelled",
+  "simulated",
+  "synthetic",
+];
 
 /**
  * Smooth-scrolls to a section and moves focus to it (for keyboard and screen

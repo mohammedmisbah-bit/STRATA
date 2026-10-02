@@ -6,14 +6,18 @@
  * Indian Minerals Yearbook, tagged via `officialSource`. Depths are rounded and
  * change as development deepens; re-check against the latest annual report.
  *
- * ⚠️ Everything else — targets, trends, alerts, confidence bands, spectral
- * readings, beacons — is still a plausible placeholder so the UI can be
- * exercised end to end. Those values are expected to be replaced by the
- * Supabase `mines` / `production_logs` / `prospectivity_grid` tables.
+ * Prospectivity score, interval, confidence bands and spectral readings are
+ * overlaid from the satellite pipeline (`src/data/prospectivity.ts`) for every
+ * mine it scored; the hand-authored values below are only the fallback.
+ *
+ * ⚠️ Targets, trends, alerts and risk beacons are still plausible placeholders
+ * so the UI can be exercised end to end.
  *
  * The shape of this module is the contract the UI consumes. Keep the types
  * stable and swap the data source underneath.
  */
+
+import { getPipelineMine, imageryWindowLabel, PROSPECTIVITY } from "@/data/prospectivity";
 
 /** Provenance tag for the MOIL ground-truth fields on each mine record. */
 export const MOIL_OFFICIAL_SOURCE = "MOIL SEBI / NSE Corporate Filings";
@@ -110,8 +114,15 @@ export type MineProfile = {
   beltName: string;
   /** Mean prospectivity score, 0.0 – 1.0. */
   prospectivityScore: number;
-  /** ± variance from the Random Forest bootstrap. */
+  /** ± half-width of the Random Forest bootstrap interval. */
   prospectivityVariance: number;
+  /** 95% bootstrap interval, when the satellite pipeline scored this mine. */
+  prospectivityInterval: { lo: number; hi: number } | null;
+  /**
+   * "satellite" when score, bands and spectral readings come from the
+   * Sentinel-2 / Copernicus DEM pipeline; "simulated" for hand-authored values.
+   */
+  prospectivitySource: "satellite" | "simulated";
   trend: TrendPoint[];
   riskAlerts: RiskAlert[];
   confidenceBands: ConfidenceBand[];
@@ -147,7 +158,10 @@ function buildTrend(target: number, actuals: readonly number[]): TrendPoint[] {
   }));
 }
 
-const MINE_PROFILES: Record<MineId, MineProfile> = {
+/** Hand-authored profile, before satellite pipeline output is overlaid. */
+type BaseProfile = Omit<MineProfile, "prospectivityInterval" | "prospectivitySource">;
+
+const MINE_PROFILES: Record<MineId, BaseProfile> = {
   balaghat: {
     id: "balaghat",
     label: "Balaghat Mine",
@@ -607,7 +621,8 @@ export function isMineId(value: unknown): value is MineId {
  * dashboard.
  */
 export function getMineProfile(id: unknown): MineProfile {
-  return isMineId(id) ? MINE_PROFILES[id] : MINE_PROFILES[DEFAULT_MINE_ID];
+  const base = isMineId(id) ? MINE_PROFILES[id] : MINE_PROFILES[DEFAULT_MINE_ID];
+  return applyPipeline({ ...base, prospectivityInterval: null, prospectivitySource: "simulated" });
 }
 
 export function describeMineDepth(mine: MineProfile): string {
@@ -646,6 +661,10 @@ export type MineOverride = {
  * explicit "no data" state rather than as zeroes.
  */
 export function composeMineProfile(override: MineOverride): MineProfile {
+  return applyPipeline(composeBaseProfile(override));
+}
+
+function composeBaseProfile(override: MineOverride): MineProfile {
   const base = isMineId(override.id) ? MINE_PROFILES[override.id] : null;
 
   const depthMeters = override.depthMeters > 0 ? override.depthMeters : (base?.depthMeters ?? 0);
@@ -691,6 +710,8 @@ export function composeMineProfile(override: MineOverride): MineProfile {
     beltName: base?.beltName ?? "Nagpur – Bhandara – Balaghat Manganese Belt",
     prospectivityScore: base?.prospectivityScore ?? 0,
     prospectivityVariance: base?.prospectivityVariance ?? 0,
+    prospectivityInterval: null,
+    prospectivitySource: "simulated" as const,
     trend,
     riskAlerts: base?.riskAlerts ?? [],
     confidenceBands: base?.confidenceBands ?? [],
@@ -705,5 +726,66 @@ export function composeMineProfile(override: MineOverride): MineProfile {
         coordinates: { lat: override.latitude, lon: override.longitude },
       },
     ],
+  };
+}
+
+/**
+ * Overlays Sentinel-2 / Copernicus DEM pipeline output on a profile.
+ *
+ * Replaces the hand-authored score, interval, confidence bands and spectral
+ * readings with measured values, and drops the illustrative "prospect"
+ * beacons (real greenfield targets are drawn from the pipeline instead).
+ * Operational risk beacons stay: they are not part of the geology model.
+ */
+function applyPipeline(profile: MineProfile): MineProfile {
+  const stats = getPipelineMine(profile.id);
+  if (stats === null) return profile;
+
+  const cell = PROSPECTIVITY.grid.cellMeters;
+  const window = imageryWindowLabel();
+
+  return {
+    ...profile,
+    gridResolution: `${cell} m × ${cell} m`,
+    prospectivityScore: stats.score,
+    prospectivityVariance: Math.max(0, (stats.hi - stats.lo) / 2),
+    prospectivityInterval: { lo: stats.lo, hi: stats.hi },
+    prospectivitySource: "satellite",
+    confidenceBands: stats.confidenceBands.map((band) => ({
+      band: band.band,
+      mean: band.mean ?? 0,
+      lo: band.lo ?? 0,
+      hi: band.hi ?? 0,
+    })),
+    spectralLayers: [
+      {
+        id: `${profile.id}-ferric`,
+        title: "Ferric Iron Index",
+        source: `Sentinel-2 L2A · B4 / B2 · median ${window}`,
+        description:
+          "Mean within 1.5 km of the mine. Iron-oxide staining from weathered Mn–Fe ore and laterite cappings raises red relative to blue.",
+        reading: `${stats.ferric.toFixed(2)} · belt P${Math.round(stats.beltFerricPercentile)}`,
+        tone: "ochre",
+      },
+      {
+        id: `${profile.id}-clay`,
+        title: "Clay / Hydroxyl Ratio",
+        source: `Sentinel-2 L2A · B11 / B12 · median ${window}`,
+        description:
+          "Clay and other hydroxyl-bearing minerals absorb at B12, so a higher ratio points to altered or weathered host rock.",
+        reading: `${stats.clay.toFixed(2)} · belt P${Math.round(stats.beltClayPercentile)}`,
+        tone: "teal",
+      },
+      {
+        id: `${profile.id}-terrain`,
+        title: "Terrain Relief",
+        source: PROSPECTIVITY.sources.dem,
+        description:
+          "Mn horizons in the Sausar Group often weather out as resistant ridges, so slope and local relief feed the model alongside the spectral ratios.",
+        reading: `Slope ${stats.slope.toFixed(1)}° · relief ${Math.round(stats.relief)} m`,
+        tone: "slate",
+      },
+    ],
+    mapBeacons: profile.mapBeacons.filter((beacon) => beacon.tone !== "emerald"),
   };
 }

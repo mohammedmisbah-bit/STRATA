@@ -46,6 +46,8 @@ function createDummyClient(): SupabaseClient {
     select: () => builder,
     order: () => builder,
     eq: () => builder,
+    gte: () => builder,
+    lte: () => builder,
     limit: () => builder,
     single: () => builder,
     maybeSingle: () => builder,

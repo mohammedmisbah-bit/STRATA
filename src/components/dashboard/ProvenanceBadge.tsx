@@ -1,4 +1,4 @@
-import { BadgeCheck, Calculator, Dices, FlaskConical } from "lucide-react";
+import { BadgeCheck, Calculator, Dices, FlaskConical, Satellite } from "lucide-react";
 
 import { useUiText } from "@/i18n/use-ui-text";
 import { cn } from "@/lib/utils";
@@ -7,19 +7,27 @@ import { cn } from "@/lib/utils";
  * Where a card's numbers come from.
  *
  *  - official:  MOIL SEBI / NSE corporate filings (depth, mine type, ore profile).
+ *  - satellite: measured Sentinel-2 L2A / Copernicus DEM data scored by the
+ *               STRATA pipeline (pipeline/strata_pipeline.py).
  *  - modelled:  deterministic formulas applied to the current inputs.
  *  - simulated: hand-authored placeholder / illustrative fixtures.
  *  - synthetic: seeded PRNG output (mulberry32), reproducible but not measured.
  *
  * `null` is reserved for guidance cards that carry no data at all.
  */
-export type Provenance = "official" | "modelled" | "simulated" | "synthetic";
+export type Provenance = "official" | "satellite" | "modelled" | "simulated" | "synthetic";
 
 const META: Record<Provenance, { title: string; icon: typeof BadgeCheck; className: string }> = {
   official: {
     title: "Sourced from MOIL SEBI / NSE corporate filings.",
     icon: BadgeCheck,
     className: "border-teal/25 bg-teal-soft text-teal",
+  },
+  satellite: {
+    title:
+      "Computed from Copernicus Sentinel-2 L2A imagery and Copernicus DEM by the STRATA prospectivity pipeline.",
+    icon: Satellite,
+    className: "border-emerald-200 bg-emerald-50 text-emerald-800",
   },
   modelled: {
     title: "Calculated by the deterministic scenario model from the current inputs.",

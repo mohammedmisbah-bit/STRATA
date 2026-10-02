@@ -127,6 +127,11 @@ export const UI_STRINGS = {
   "prov.modelled": { en: "Modelled", hi: "मॉडल आधारित", mr: "मॉडेल आधारित" },
   "prov.simulated": { en: "Simulated", hi: "सिम्युलेटेड", mr: "सिम्युलेटेड" },
   "prov.synthetic": { en: "Synthetic PRNG", hi: "कृत्रिम PRNG", mr: "कृत्रिम PRNG" },
+  "prov.satellite": {
+    en: "Sentinel-2 derived",
+    hi: "सेंटिनल-2 आधारित",
+    mr: "सेंटिनेल-2 आधारित",
+  },
 
   // --- Shared metric words ----------------------------------------------------
   "common.attainment": { en: "Attainment", hi: "प्राप्ति", mr: "साध्यता" },
@@ -361,7 +366,160 @@ export const UI_STRINGS = {
     mr: "हे कार्यक्षेत्र प्राथमिक तपासणी आणि अर्थ लावण्यास मदत करते. ते क्षेत्रीय नकाशांकन, ड्रिलिंग किंवा सक्षम-व्यक्ती अंदाजाचा पर्याय नाही.",
   },
 
+  "pros.satelliteBadge": {
+    en: "Sentinel-2 · {window}",
+    hi: "सेंटिनल-2 · {window}",
+    mr: "सेंटिनेल-2 · {window}",
+  },
+  "pros.m.intervalDesc": {
+    en: "95% bootstrap interval {lo}–{hi} across {runs} model runs.",
+    hi: "{runs} मॉडल रन में 95% बूटस्ट्रैप अंतराल {lo}–{hi}।",
+    mr: "{runs} मॉडेल रनमध्ये 95% बूटस्ट्रॅप अंतराल {lo}–{hi}.",
+  },
+  "pros.m.targets": {
+    en: "Greenfield targets",
+    hi: "नए लक्ष्य क्षेत्र",
+    mr: "नवीन लक्ष्य क्षेत्रे",
+  },
+  "pros.m.targetsDesc": {
+    en: "Clusters in the belt's top 1% that are at least 3 km from a known mine.",
+    hi: "पट्टी के शीर्ष 1% में आने वाले समूह, जो किसी ज्ञात खदान से कम से कम 3 km दूर हैं।",
+    mr: "पट्ट्याच्या शीर्ष 1% मधील समूह, जे ज्ञात खाणीपासून किमान 3 km दूर आहेत.",
+  },
+
+  // --- Model validation -----------------------------------------------------------
+  "val.title": {
+    en: "Does the Model Actually Work?",
+    hi: "क्या मॉडल वास्तव में काम करता है?",
+    mr: "मॉडेल खरोखर काम करते का?",
+  },
+  "val.desc": {
+    en: "Each known mine was hidden from training in turn. A good model should still rank the hidden mine's surroundings highly.",
+    hi: "हर ज्ञात खदान को बारी-बारी से प्रशिक्षण से छिपाया गया। अच्छे मॉडल को फिर भी छिपी खदान के आसपास को ऊँचा आँकना चाहिए।",
+    mr: "प्रत्येक ज्ञात खाण क्रमाने प्रशिक्षणातून लपवली गेली. चांगल्या मॉडेलने तरीही लपवलेल्या खाणीच्या परिसराला उच्च गुण द्यायला हवेत.",
+  },
+  "val.meanAuc": {
+    en: "Held-out AUC (Random Forest)",
+    hi: "छिपी खदान पर AUC (रैंडम फ़ॉरेस्ट)",
+    mr: "लपवलेल्या खाणीवर AUC (रँडम फॉरेस्ट)",
+  },
+  "val.baseline": {
+    en: "Simple band-ratio index",
+    hi: "साधारण बैंड-अनुपात सूचकांक",
+    mr: "साधा बँड-गुणोत्तर निर्देशांक",
+  },
+  "val.scale": {
+    en: "0.50 is a coin flip, 1.00 is perfect.",
+    hi: "0.50 सिक्का उछालने जैसा है, 1.00 पूर्ण है।",
+    mr: "0.50 म्हणजे नाणेफेक, 1.00 म्हणजे परिपूर्ण.",
+  },
+  "val.col.mine": { en: "Hidden mine", hi: "छिपी खदान", mr: "लपवलेली खाण" },
+  "val.col.auc": { en: "Model AUC", hi: "मॉडल AUC", mr: "मॉडेल AUC" },
+  "val.col.baseline": { en: "Index AUC", hi: "सूचकांक AUC", mr: "निर्देशांक AUC" },
+  "val.col.rank": {
+    en: "Ranked in belt",
+    hi: "पट्टी में स्थान",
+    mr: "पट्ट्यातील स्थान",
+  },
+  "val.rank": { en: "top {pct}%", hi: "शीर्ष {pct}%", mr: "शीर्ष {pct}%" },
+  "val.withNeighbour": {
+    en: "held out with {mines}",
+    hi: "{mines} के साथ छिपाई गई",
+    mr: "{mines} सोबत लपवली",
+  },
+  "val.features": {
+    en: "What the model relies on",
+    hi: "मॉडल किन संकेतों पर निर्भर है",
+    mr: "मॉडेल कोणत्या संकेतांवर अवलंबून आहे",
+  },
+  "val.caveat": {
+    en: "Six labelled deposits is a small training set, and results vary by mine (Kandri is ranked poorly). Treat the heatmap as a screening layer to prioritise field mapping, not as proof of ore.",
+    hi: "छह चिह्नित भंडार एक छोटा प्रशिक्षण समूह है और परिणाम खदान के अनुसार बदलते हैं (कांद्री का स्थान कमज़ोर है)। हीटमैप को क्षेत्रीय मानचित्रण की प्राथमिकता तय करने वाली परत मानें, अयस्क का प्रमाण नहीं।",
+    mr: "सहा चिन्हांकित साठे हा लहान प्रशिक्षण संच आहे आणि निकाल खाणीनुसार बदलतात (कांद्रीचे स्थान कमकुवत आहे). हीटमॅपला क्षेत्रीय नकाशांकनाचा प्राधान्यक्रम ठरवणारा स्तर माना, धातुकाचा पुरावा नव्हे.",
+  },
+  "val.liveCells": {
+    en: "{count} grid cells live in Supabase",
+    hi: "Supabase में {count} ग्रिड सेल लाइव",
+    mr: "Supabase मध्ये {count} ग्रिड सेल थेट",
+  },
+  "val.liveCellsOffline": {
+    en: "Grid database unreachable · showing bundled results",
+    hi: "ग्रिड डेटाबेस उपलब्ध नहीं · संग्रहीत परिणाम दिखाए जा रहे हैं",
+    mr: "ग्रिड डेटाबेस उपलब्ध नाही · साठवलेले निकाल दाखवत आहे",
+  },
+  "val.generated": {
+    en: "Pipeline run {date} · {obs} clear observations per pixel (median)",
+    hi: "पाइपलाइन रन {date} · प्रति पिक्सेल {obs} साफ़ अवलोकन (माध्यिका)",
+    mr: "पाइपलाइन रन {date} · प्रति पिक्सेल {obs} स्वच्छ निरीक्षणे (मध्यक)",
+  },
+
+  // --- Greenfield targets ---------------------------------------------------------
+  "targets.title": {
+    en: "Greenfield Targets",
+    hi: "नए लक्ष्य क्षेत्र",
+    mr: "नवीन लक्ष्य क्षेत्रे",
+  },
+  "targets.desc": {
+    en: "Highest-scoring clusters away from existing mines, ranked by score and size.",
+    hi: "मौजूदा खदानों से दूर सबसे अधिक स्कोर वाले समूह, स्कोर और आकार के अनुसार क्रमबद्ध।",
+    mr: "सध्याच्या खाणींपासून दूर सर्वाधिक गुण असलेले समूह, गुण आणि आकारानुसार क्रमवार.",
+  },
+  "targets.near": {
+    en: "{km} km from {mine}",
+    hi: "{mine} से {km} km",
+    mr: "{mine} पासून {km} km",
+  },
+  "targets.show": { en: "Show on map", hi: "मानचित्र पर दिखाएँ", mr: "नकाशावर दाखवा" },
+  "targets.showLabel": {
+    en: "Show target {id} on the map",
+    hi: "लक्ष्य {id} मानचित्र पर दिखाएँ",
+    mr: "लक्ष्य {id} नकाशावर दाखवा",
+  },
+
   // --- Explorer / map ---------------------------------------------------------
+  "map.heatmapToggle": {
+    en: "Sentinel-2 prospectivity",
+    hi: "सेंटिनल-2 संभावना",
+    mr: "सेंटिनेल-2 संभाव्यता",
+  },
+  "map.heatmapLegend": {
+    en: "Prospectivity score (relative)",
+    hi: "संभावना स्कोर (सापेक्ष)",
+    mr: "संभाव्यता गुणांक (सापेक्ष)",
+  },
+  "map.clickHint": {
+    en: "Click the map to inspect a 500 m cell",
+    hi: "500 m सेल देखने के लिए मानचित्र पर क्लिक करें",
+    mr: "500 m सेल तपासण्यासाठी नकाशावर क्लिक करा",
+  },
+  "map.cell.title": {
+    en: "500 m cell · live from Supabase",
+    hi: "500 m सेल · Supabase से लाइव",
+    mr: "500 m सेल · Supabase मधून थेट",
+  },
+  "map.cell.loading": {
+    en: "Loading cell…",
+    hi: "सेल लोड हो रहा है…",
+    mr: "सेल लोड होत आहे…",
+  },
+  "map.cell.none": {
+    en: "No grid cell here (water, persistent cloud or outside the belt).",
+    hi: "यहाँ कोई ग्रिड सेल नहीं (पानी, लगातार बादल या पट्टी के बाहर)।",
+    mr: "येथे ग्रिड सेल नाही (पाणी, सततचे ढग किंवा पट्ट्याबाहेर).",
+  },
+  "map.cell.error": {
+    en: "Couldn't reach the grid database.",
+    hi: "ग्रिड डेटाबेस तक नहीं पहुँच सके।",
+    mr: "ग्रिड डेटाबेसपर्यंत पोहोचता आले नाही.",
+  },
+  "map.cell.score": { en: "Score", hi: "स्कोर", mr: "गुणांक" },
+  "map.cell.interval": { en: "95% interval", hi: "95% अंतराल", mr: "95% अंतराल" },
+  "map.cell.ironClay": {
+    en: "Iron × clay index",
+    hi: "आयरन × क्ले सूचकांक",
+    mr: "आयर्न × क्ले निर्देशांक",
+  },
+  "map.cell.slope": { en: "Slope", hi: "ढलान", mr: "उतार" },
   "explorer.title": {
     en: "Prospectivity Spatial Explorer",
     hi: "संभावना स्थानिक एक्सप्लोरर",
@@ -1073,9 +1231,14 @@ export const UI_STRINGS = {
     mr: "प्रत्येक आकडा तो कुठून आला हे सांगतो.",
   },
   "landing.trust.desc": {
-    en: "STRATA never presents a model as a measurement. Each card carries one of four labels:",
-    hi: "STRATA कभी भी मॉडल को मापन के रूप में नहीं दिखाता। हर कार्ड पर चार में से एक लेबल होता है:",
-    mr: "STRATA कधीही मॉडेलला मोजमाप म्हणून दाखवत नाही. प्रत्येक कार्डवर चारपैकी एक लेबल असते:",
+    en: "STRATA never presents a model as a measurement. Each card carries one of five labels:",
+    hi: "STRATA कभी भी मॉडल को मापन के रूप में नहीं दिखाता। हर कार्ड पर पाँच में से एक लेबल होता है:",
+    mr: "STRATA कधीही मॉडेलला मोजमाप म्हणून दाखवत नाही. प्रत्येक कार्डवर पाचपैकी एक लेबल असते:",
+  },
+  "landing.trust.satellite": {
+    en: "Scored from Copernicus Sentinel-2 imagery and elevation data, with published validation.",
+    hi: "कॉपरनिकस सेंटिनल-2 चित्रों और ऊँचाई डेटा से आँका गया, सत्यापन परिणामों के साथ।",
+    mr: "कॉपर्निकस सेंटिनेल-2 प्रतिमा आणि उंची डेटावरून मोजलेले, पडताळणी निकालांसह.",
   },
   "landing.trust.official": {
     en: "Taken from MOIL SEBI / NSE corporate filings.",

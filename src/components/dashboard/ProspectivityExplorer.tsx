@@ -36,7 +36,7 @@ export function ProspectivityExplorer({ expanded = false }: { expanded?: boolean
   return (
     <Panel
       title={t("explorer.title")}
-      provenance="simulated"
+      provenance={mine.prospectivitySource === "satellite" ? "satellite" : "simulated"}
       description={t("explorer.desc")}
       right={<ViewTabs />}
       footer={<ProspectivityMapAttribution />}

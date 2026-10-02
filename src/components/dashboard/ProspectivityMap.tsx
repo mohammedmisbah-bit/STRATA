@@ -8,22 +8,41 @@ import type {
   LayerSpecification,
   Map as MapLibreMap,
   Marker,
+  Popup,
   StyleSpecification,
 } from "maplibre-gl";
-import { Layers, Loader2, MapPinOff } from "lucide-react";
+import { Layers, Loader2, MapPinOff, Satellite } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { useDashboard } from "@/context/use-dashboard";
 import { GEOLOGY_LEGEND, NGDR_GEOLOGY_LAYER } from "@/data/ngdrGeologyLayer";
+import { PROSPECTIVITY, type ProspectTarget } from "@/data/prospectivity";
 import { useUiText } from "@/i18n/use-ui-text";
 import { formatLatitude, formatLongitude, formatScore } from "@/lib/format";
+import { MAP_FOCUS_EVENT, type MapFocusDetail } from "@/lib/map-events";
 import type { BeaconTone, MapBeacon, MineProfile } from "@/lib/mine-data";
 import { cn } from "@/lib/utils";
+import { fetchNearestGridCell, type GridCellResult } from "@/services/prospectivityService";
 
 type MapLibreModule = typeof import("maplibre-gl");
 type MapStatus = "loading" | "ready" | "error";
 
 const GEOLOGY_SOURCE_ID = "ngdr-geology";
+const HEATMAP_SOURCE_ID = "s2-prospectivity";
+
+/**
+ * Sentinel-2 / Copernicus DEM prospectivity raster from the pipeline. One
+ * georeferenced PNG (~100 m cells); transparent below the score threshold.
+ */
+const HEATMAP_LAYER: LayerSpecification = {
+  id: "s2-prospectivity-heatmap",
+  type: "raster",
+  source: HEATMAP_SOURCE_ID,
+  paint: { "raster-opacity": 0.9, "raster-fade-duration": 0 },
+};
+
+/** Legend stops, matching `colour_ramp` in pipeline/strata_pipeline.py. */
+const HEATMAP_GRADIENT = "linear-gradient(90deg, #2DD4BF, #FACC15, #FB923C, #F43F5E)";
 /**
  * Mine-level zoom. The shaft and prospect beacons sit 1–2 km apart, so at the
  * old zoom of 9 their labels stacked on top of each other. Zoom out with the
@@ -153,6 +172,74 @@ function createSiteElement(site: MineProfile, isActive: boolean): HTMLElement {
   return root;
 }
 
+/** DOM element for a pipeline greenfield target. Decorative; the sr-only list carries the text. */
+function createTargetElement(target: ProspectTarget): HTMLElement {
+  const root = document.createElement("div");
+  root.setAttribute("aria-hidden", "true");
+  root.style.cssText = "display:flex;align-items:center;gap:5px;pointer-events:none;";
+
+  const diamond = document.createElement("span");
+  diamond.style.cssText =
+    "width:9px;height:9px;transform:rotate(45deg);background:#C4B5FD;border:1.5px solid #1E1B4B;box-shadow:0 0 0 3px rgba(196,181,253,0.25);";
+
+  const label = document.createElement("span");
+  label.textContent = `${target.id} · ${formatScore(target.score)}`;
+  label.style.cssText = [
+    `font:${LABEL_FONT}`,
+    "color:#EDE9FE",
+    "background:rgba(30,27,75,0.78)",
+    "border:1px solid rgba(196,181,253,0.5)",
+    "border-radius:6px",
+    "padding:2px 5px",
+    "white-space:nowrap",
+  ].join(";");
+
+  root.append(diamond, label);
+  return root;
+}
+
+type UiTranslate = ReturnType<typeof useUiText>;
+
+/**
+ * Popup body for a clicked grid cell. Built with DOM nodes and `textContent`
+ * only, so nothing from the database is ever parsed as HTML.
+ */
+function buildCellPopup(t: UiTranslate, result: GridCellResult | null): HTMLElement {
+  const root = document.createElement("div");
+  root.style.cssText =
+    "font:500 11px/1.45 ui-sans-serif,system-ui,sans-serif;color:#0F172A;min-width:170px;";
+
+  const title = document.createElement("p");
+  title.textContent = t("map.cell.title");
+  title.style.cssText =
+    "margin:0 0 4px;font:700 9px/1.3 ui-monospace,monospace;letter-spacing:0.08em;text-transform:uppercase;color:#0F766E;";
+  root.append(title);
+
+  const line = (text: string, muted = false) => {
+    const p = document.createElement("p");
+    p.textContent = text;
+    p.style.cssText = `margin:0;${muted ? "color:#64748B;" : ""}`;
+    root.append(p);
+  };
+
+  if (result === null) {
+    line(t("map.cell.loading"), true);
+  } else if (result.status === "empty") {
+    line(t("map.cell.none"), true);
+  } else if (result.status === "error") {
+    line(t("map.cell.error"), true);
+  } else {
+    const { cell } = result;
+    line(`${t("map.cell.score")}: ${formatScore(cell.score)}`);
+    line(`${t("map.cell.interval")}: ${formatScore(cell.lower)}–${formatScore(cell.upper)}`);
+    if (cell.ironClay !== null) line(`${t("map.cell.ironClay")}: ${cell.ironClay.toFixed(2)}`);
+    if (cell.slopeDegrees !== null)
+      line(`${t("map.cell.slope")}: ${cell.slopeDegrees.toFixed(1)}°`);
+    line(`${formatLatitude(cell.latitude)}, ${formatLongitude(cell.longitude)}`, true);
+  }
+  return root;
+}
+
 /** DOM element for an operational beacon (risk / prospect) on the active mine. */
 function createBeaconElement(beacon: MapBeacon): HTMLElement {
   const colors = BEACON_COLORS[beacon.tone] ?? BEACON_COLORS.emerald;
@@ -211,6 +298,14 @@ export function ProspectivityMap() {
   const [overlayVisible, setOverlayVisible] = useState(true);
   // Read by the load handler so a toggle made before load is honoured.
   const overlayVisibleRef = useRef(overlayVisible);
+  const [heatmapVisible, setHeatmapVisible] = useState(true);
+  const heatmapVisibleRef = useRef(heatmapVisible);
+  // Map event handlers outlive renders; they read the current translator here.
+  const tRef = useRef(t);
+  useEffect(() => {
+    tRef.current = t;
+  }, [t]);
+  const popupRef = useRef<Popup | null>(null);
 
   // Create the map once. Effects never run during SSR, but the explicit window
   // guard keeps this safe if the component is ever rendered by a non-React
@@ -280,6 +375,23 @@ export function ProspectivityMap() {
             if (instance.getLayer(layer.id) === undefined) instance.addLayer(layer, beforeId);
             instance.setLayoutProperty(layer.id, "visibility", visibility);
           }
+          // Heatmap sits above the translucent lithology fill but under the
+          // outlines and lineaments, so structure stays readable on top.
+          if (instance.getSource(HEATMAP_SOURCE_ID) === undefined) {
+            instance.addSource(HEATMAP_SOURCE_ID, {
+              type: "image",
+              url: PROSPECTIVITY.heatmap.url,
+              coordinates: PROSPECTIVITY.heatmap.coordinates,
+            });
+          }
+          if (instance.getLayer(HEATMAP_LAYER.id) === undefined) {
+            instance.addLayer(HEATMAP_LAYER, "ngdr-lithology-outline");
+          }
+          instance.setLayoutProperty(
+            HEATMAP_LAYER.id,
+            "visibility",
+            heatmapVisibleRef.current ? "visible" : "none",
+          );
           mapRef.current = instance;
           setStatus("ready");
         };
@@ -308,9 +420,31 @@ export function ProspectivityMap() {
             switchToFallback();
             return;
           }
-          if (typeof sourceId === "string" && sourceId !== GEOLOGY_SOURCE_ID) {
+          if (
+            typeof sourceId === "string" &&
+            sourceId !== GEOLOGY_SOURCE_ID &&
+            sourceId !== HEATMAP_SOURCE_ID
+          ) {
             setBasemapFailed(true);
           }
+        });
+
+        // Click to inspect: the nearest 500 m cell, read live from Supabase.
+        let clickRequest = 0;
+        instance.getCanvas().style.cursor = "crosshair";
+        instance.on("click", (event) => {
+          const { lat: clickLat, lng: clickLon } = event.lngLat;
+          const requestId = ++clickRequest;
+          popupRef.current?.remove();
+          const popup = new lib.Popup({ closeButton: true, maxWidth: "260px" })
+            .setLngLat(event.lngLat)
+            .setDOMContent(buildCellPopup(tRef.current, null))
+            .addTo(instance);
+          popupRef.current = popup;
+          void fetchNearestGridCell(clickLat, clickLon).then((result) => {
+            if (cancelled || requestId !== clickRequest) return;
+            popup.setDOMContent(buildCellPopup(tRef.current, result));
+          });
         });
 
         // The panel can change size without a window resize (tab reveal,
@@ -326,6 +460,8 @@ export function ProspectivityMap() {
       cancelled = true;
       window.clearTimeout(styleTimeout);
       resizeObserver?.disconnect();
+      popupRef.current?.remove();
+      popupRef.current = null;
       for (const marker of markersRef.current) marker.remove();
       markersRef.current = [];
       mapRef.current = null;
@@ -363,8 +499,39 @@ export function ProspectivityMap() {
       );
     }
 
+    if (heatmapVisible) {
+      for (const target of PROSPECTIVITY.targets) {
+        next.push(
+          new lib.Marker({ element: createTargetElement(target), anchor: "left", offset: [-5, 0] })
+            .setLngLat([target.lon, target.lat])
+            .addTo(map),
+        );
+      }
+    }
+
     markersRef.current = next;
-  }, [status, mines, mine]);
+  }, [status, mines, mine, heatmapVisible]);
+
+  // "Show on map" requests from the target list.
+  useEffect(() => {
+    const map = mapRef.current;
+    if (status !== "ready" || map === null) return;
+    const onFocus = (event: Event) => {
+      const detail = (event as CustomEvent<MapFocusDetail>).detail;
+      map.flyTo({ center: [detail.lon, detail.lat], zoom: detail.zoom ?? 13, essential: false });
+    };
+    window.addEventListener(MAP_FOCUS_EVENT, onFocus);
+    return () => window.removeEventListener(MAP_FOCUS_EVENT, onFocus);
+  }, [status]);
+
+  useEffect(() => {
+    heatmapVisibleRef.current = heatmapVisible;
+    const map = mapRef.current;
+    if (status !== "ready" || map === null) return;
+    if (map.getLayer(HEATMAP_LAYER.id) !== undefined) {
+      map.setLayoutProperty(HEATMAP_LAYER.id, "visibility", heatmapVisible ? "visible" : "none");
+    }
+  }, [status, heatmapVisible]);
 
   // Fly to the active mine. `essential: false` lets MapLibre skip the animation
   // under prefers-reduced-motion.
@@ -417,6 +584,15 @@ export function ProspectivityMap() {
           {mine.mapBeacons.map((beacon) => (
             <li key={beacon.id}>{beacon.label}</li>
           ))}
+          {heatmapVisible
+            ? PROSPECTIVITY.targets.map((target) => (
+                <li key={target.id}>
+                  {t("targets.title")} {target.id}: {t("map.cell.score")}{" "}
+                  {formatScore(target.score)}, {formatLatitude(target.lat)},{" "}
+                  {formatLongitude(target.lon)}
+                </li>
+              ))
+            : null}
         </ul>
 
         <div className="pointer-events-none absolute left-2 top-2 z-10 flex max-w-[calc(100%-4rem)] flex-col items-start gap-1.5">
@@ -438,10 +614,49 @@ export function ProspectivityMap() {
             <span className="sm:hidden">{t("map.toggleShort")}</span>
             <span className="sr-only">{overlayVisible ? t("map.on") : t("map.off")}</span>
           </button>
+          <button
+            type="button"
+            onClick={() => setHeatmapVisible((visible) => !visible)}
+            aria-pressed={heatmapVisible}
+            disabled={status === "error"}
+            className={cn(
+              "pointer-events-auto flex items-center gap-1.5 rounded-md border px-2 py-1 font-mono text-[10px] font-semibold transition-colors duration-200 active:scale-[0.97]",
+              "focus-visible:ring-2 focus-visible:ring-amber-300 focus-visible:outline-none disabled:cursor-not-allowed disabled:opacity-40",
+              heatmapVisible
+                ? "border-amber-400/60 bg-amber-950/70 text-amber-100 hover:bg-amber-900/70"
+                : "border-slate-600 bg-slate-950/70 text-slate-300 hover:bg-slate-900/70",
+            )}
+          >
+            <Satellite className="size-3" aria-hidden="true" />
+            {t("map.heatmapToggle")}
+            <span className="sr-only">{heatmapVisible ? t("map.on") : t("map.off")}</span>
+          </button>
           <span className="rounded bg-slate-950/70 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-300">
             {mine.beltName}
           </span>
         </div>
+
+        {status === "ready" ? (
+          <div className="pointer-events-none absolute bottom-9 right-2 z-10 rounded-md border border-slate-700 bg-slate-950/90 px-2 py-1.5">
+            {heatmapVisible ? (
+              <>
+                <p className="mb-1 text-[9px] font-semibold uppercase tracking-[0.14em] text-slate-400">
+                  {t("map.heatmapLegend")}
+                </p>
+                <span
+                  className="block h-1.5 w-36 rounded-full"
+                  style={{ background: HEATMAP_GRADIENT }}
+                  aria-hidden="true"
+                />
+                <span className="mt-0.5 flex justify-between font-mono text-[9px] text-slate-300">
+                  <span>{formatScore(PROSPECTIVITY.heatmap.threshold)}</span>
+                  <span>1.00</span>
+                </span>
+              </>
+            ) : null}
+            <p className="mt-1 text-[9px] text-slate-400">{t("map.clickHint")}</p>
+          </div>
+        ) : null}
 
         {overlayVisible && status === "ready" ? (
           <div className="pointer-events-none absolute bottom-2 left-2 z-10 rounded-md border border-slate-700 bg-slate-950/90 px-2 py-1.5">
@@ -526,8 +741,10 @@ export function ProspectivityMapAttribution() {
   const t = useUiText();
   return (
     <p className="text-[10px] leading-relaxed text-muted-foreground">
-      <span className="font-semibold text-foreground">{t("map.sources")}</span> GSI Bhukosh
-      (Geological Maps) | NGDR (GIS Layers) | MOIL Investor Relations (Ground Truth)
+      <span className="font-semibold text-foreground">{t("map.sources")}</span> Contains modified
+      Copernicus Sentinel data {PROSPECTIVITY.sources.imageryWindow[1].slice(0, 4)} and Copernicus
+      DEM GLO-90 (ESA, via Copernicus Data Space Ecosystem) | GSI Bhukosh (Geological Maps) | NGDR
+      (GIS Layers) | MOIL Investor Relations (Ground Truth)
       <span className="block sm:inline"> · {t("map.overlayNote")}</span>
     </p>
   );
